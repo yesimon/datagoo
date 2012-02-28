@@ -20,40 +20,76 @@ http://creativecommons.org/licenses/by/3.0/
 (Use our code freely! Please just remember to give us credit where it's due. Thanks!)
 */
 
-#include <SoftwareSerial.h>  //Include the SoftwareSerial library to send serial commands to the cellular module.
+#include <SoftwareSerial.h> //Include the SoftwareSerial library to send serial commands to the cellular module.
 #include <string.h>         //Used for string manipulations
+#include <SD.h>             //SD card interface
+#include <Wire.h>           //Used to interact with Real Time Clock
+#include <RTClib.h>         //Real Time Clock
+//#include <JeeLib.h>
+//#include <avr/wdt.h>
 
 String inputString = "";
-//char incoming_char;
-
-long previousMillis = 0;
 
 int numTextsSent = 0;
 char ctrlZ = (char)0x1A;
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
+File logFile;
+long lastLoggedTime = 0;
+RTC_DS1307 RTC;
+
+//ISR(WDT_vect) { Sleepy::watchdogEvent(); }
+
 void setup()
 {
   //Initialize serial ports for communication.
   Serial.begin(9600);
-  cell.begin(9600);
+  //cell.begin(9600);
   
   //Let's get started!
   Serial.println("Starting SM5100B Communication...");
   
   //Wait until network registration before entering main loop
-  delay(25000);
+  //delay(25000);
   //NetworkSetup();
   //Serial.println("Network connection found!");
+  
+  //Initialize SD card
+  pinMode(10, OUTPUT);
+  if (!SD.begin(10)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+  
+  //Initialize RTC
+  Wire.begin();
+  RTC.begin();
   
   //Set system on text mode
   //cell.println("AT+CMGF=1");
 }
 
 void loop() {
+  DateTime now = RTC.now();
+  long timeDiff = now.unixtime() - lastLoggedTime;
+  Serial.println("timeDiff is " + String(timeDiff));
+  if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
+    //Open or create log file on SD card
+    logFile = SD.open("log.csv", FILE_WRITE);
+    if (logFile) {
+      Serial.println("writing entry to log");
+      writeLogEntry("Seconds are " + String(now.second()));
+      logFile.close();
+      lastLoggedTime = now.unixtime();
+    } else {
+      Serial.println("error openening log.csv");
+    }
+  }
+  
   //repeatedly read any input from the cellphone
-  cellReadLine();
+  /*cellReadLine();
   Serial.println(inputString);
   inputString = "";
   
@@ -64,8 +100,13 @@ void loop() {
     SendText("6503845765", inputString);
     numTextsSent++;
     inputString = "";
-  }
+  }*/
 }
+
+
+/*-------------------------------------------------------------------
+ * Helper Functions
+ * ------------------------------------------------------------------ */
 
 void startSMS(String mobileNumber)
 // function to send a text message
@@ -94,16 +135,14 @@ void SendText(String mobileNumber, String msg) {
 
 void NetworkSetup() {
   while(1) {
-    long currentMillis = millis();
-    if (currentMillis - previousMillis > 5000) {
-      cell.println("AT+CREG?");
-      cellReadLine();
-      Serial.println(inputString);
-      if (inputString == "+CREG: 0,1") {
-        return;
-      }
-      inputString = "";
+    cell.println("AT+CREG?");
+    cellReadLine();
+    Serial.println(inputString);
+    if (inputString == "+CREG: 0,1") {
+      return;
     }
+    inputString = "";
+    delay(5000);
   }
 }
 
@@ -126,6 +165,11 @@ void cellReadLine() {
     }
   }
 }
+
+void writeLogEntry(String logEntry) {
+  logFile.println(logEntry);
+}
+
 
 /* SM5100B Quck Reference for AT Command Set
 *Unless otherwise noted AT commands are ended by pressing the 'enter' key.
