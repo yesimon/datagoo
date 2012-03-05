@@ -25,11 +25,13 @@ http://creativecommons.org/licenses/by/3.0/
 #include <SD.h>             //SD card interface
 //#include <JeeLib.h>
 //#include <avr/wdt.h>
-#include "Emon.h"
+#include "EmonLib.h"
 
 #define sdPin 10
 #define currentPin 0
 #define voltPin 1
+
+String mobileNumber = "6503845765" //phone number to text status updates to
 
 String inputString = ""; //used to read input from the cell phone module
 
@@ -63,17 +65,18 @@ void setup()
   }
   Serial.println("initialization done.");*/
   
-  //Set system on text mode
-  //cell.println("AT+CMGF=1");
+  
+  //cell.println("AT+CMGF=1"); //Set system on text mode
+  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
+  
+  //setup voltage/current monitoring
+  emon1.voltage(voltPin, 238.5, 1.7);  // Voltage: input pin, calibration, phase_shift
+  emon1.current(currentPin, 138.8);       // Current: input pin, calibration
 }
 
 void loop() {
-  int vcc = readVcc();
-  
-  emon1.setPins(voltPin, currentPin);    //emonTX AC-AC voltage (ADC2), current pin (CT1 - ADC3) 
-  emon1.calibration(238.5, 138.8, 1.7);  //voltage calibration , current calibration, power factor calibration. See: http://openenergymonitor.org/emon/emontx/acac
-  emon1.calc(20, 2000, vcc);             //No.of wavelengths, time-out , emonTx supply voltage 
-  emon1.serialprint();
+  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
+  emon1.serialprint();           // Print out all variables
   
   /*long now = millis();
   long timeDiff = now - lastLoggedTime();
@@ -90,16 +93,23 @@ void loop() {
     }
   }*/
   
+  //wrap all calls to cellReadLine() in a cell.available() check
+  //to make sure we have something to read before blocking
+  
   //repeatedly read any input from the cellphone
-  /*cellReadLine();
-  Serial.println(inputString);
-  inputString = "";
+  if (cell.available()) {
+    cellReadLine();
+    if (inputString.startsWith("datagootext") {
+      changeTextNumber(inputString);
+    }
+    inputString = "";
+  }
   
   //send some test texts
-  if (numTextsSent < 2) {
+  /*if (numTextsSent < 2) {
     cell.println("AT+CCLK?"); //clocktime
     cellReadLine();
-    SendText("6503845765", inputString);
+    SendText(inputString);
     numTextsSent++;
     inputString = "";
   }*/
@@ -110,8 +120,29 @@ void loop() {
  * Helper Functions
  * ------------------------------------------------------------------ */
 
+void changeTextNumber(String text) {
+  int prefixLen = 12; //strlen("datagootext ") with space
+  mobileNumber = text.substring(prefixLen).trim();
+}
+
+/*
+ * Use this function to text (over GSM) the string 'msg' to the cell
+ * phone number mobileNumber.
+ *
+ * startSMS and endSMS are helper functions for this function and shouldn't
+ * be required by anything external (like the main loop)
+ */
+void SendText(String msg) {
+  startSMS(mobileNumber);
+  cell.print(msg);
+  endSMS();
+}
+
+/* These functions basically print some magic strings to the cell module
+ * to send texts. The information on what is expected is found here:
+ * http://www.sparkfun.com/datasheets/CellularShield/SM5100B%20AT%20Command%20Set.pdf 
+ */
 void startSMS(String mobileNumber)
-// function to send a text message
 {
   Serial.println("starting SMS");
   cell.println("AT+CMGF=1"); // set SMS mode to text
@@ -120,20 +151,15 @@ void startSMS(String mobileNumber)
   cell.print(mobileNumber);
   cell.write(34);  // ASCII equivalent of "
   cell.println();
-  delay(500); // give the module some thinking time
+  //delay(500); // give the module some thinking time
 }
 void endSMS()
 {
   Serial.println("ending SMS");
   cell.write(26);  // ASCII equivalent of Ctrl-Z
-  delay(15000); // the SMS module needs time to return to OK status
+  //delay(15000); // the SMS module needs time to return to OK status
 }
 
-void SendText(String mobileNumber, String msg) {
-  startSMS(mobileNumber);
-  cell.print(msg);
-  endSMS();
-}
 
 void NetworkSetup() {
   while(1) {
@@ -152,41 +178,31 @@ void NetworkSetup() {
  * Repeatedly tries to read a character from the cell phone's serial output
  * until it sees an end-of-line character (\r) or the serial output overflows.
  * This allows us to deal with lines and responses to our commands, rather than
- * individual ch
+ * the individual characters that the Serial interface returns 
  */
 void cellReadLine() {
+  long lastReadT = millis(); //keep track of when we started waiting for input
+  
   while (1) {
-    if (cell.available()) {
-      char c = cell.read();
+    if (cell.available()) { //if there is available input from the cell
+      char c = cell.read(); //read it
+      lastReadT = millis(); //and update our timer
       
-      if (c == -1 || c == '\n') {
+      if (c == -1 || c == '\n') { //ignore these characters
         continue;
       }
-      if (cell.overflow()) {
-        Serial.println("cell overflow");
-      }
-      if (c == '\r' || cell.overflow()) {
+      if (c == '\r' || cell.overflow()) { //and return in these cases
         return;
       }
       
-      inputString += c;
+      inputString += c; //add the character we just read to our string
+    }
+    
+    //don't loop waiting for a complete line for more than a minute
+    if (millis() - lastReadT > 60000) {
+      return; 
     }
   }
-}
-
-/*
- * Read current emonTx battery voltage - not main supplyV!
- */
-long readVcc() {
-  long result;
-  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-  delay(2);
-  ADCSRA |= _BV(ADSC);
-  while (bit_is_set(ADCSRA,ADSC));
-  result = ADCL;
-  result |= ADCH<<8;
-  result = 1126400L / result;
-  return result;
 }
 
 
