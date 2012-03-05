@@ -23,21 +23,24 @@ http://creativecommons.org/licenses/by/3.0/
 #include <SoftwareSerial.h> //Include the SoftwareSerial library to send serial commands to the cellular module.
 #include <string.h>         //Used for string manipulations
 #include <SD.h>             //SD card interface
-#include <Wire.h>           //Used to interact with Real Time Clock
-#include <RTClib.h>         //Real Time Clock
 //#include <JeeLib.h>
 //#include <avr/wdt.h>
+#include "Emon.h"
 
-String inputString = "";
+#define sdPin 10
+#define currentPin 0
+#define voltPin 1
+
+String inputString = ""; //used to read input from the cell phone module
 
 int numTextsSent = 0;
-char ctrlZ = (char)0x1A;
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
-File logFile;
-long lastLoggedTime = 0;
-RTC_DS1307 RTC;
+File logFile; //the file on the SD card taht we are writing to
+long lastLoggedTime = 0; //and the time that file was last written to
+
+EnergyMonitor emon1; //used to do the actual energy calculations
 
 //ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
@@ -47,46 +50,43 @@ void setup()
   Serial.begin(9600);
   //cell.begin(9600);
   
-  //Let's get started!
   Serial.println("Starting SM5100B Communication...");
   
   //Wait until network registration before entering main loop
   //delay(25000);
-  //NetworkSetup();
-  //Serial.println("Network connection found!");
   
   //Initialize SD card
-  pinMode(10, OUTPUT);
-  if (!SD.begin(10)) {
+  /*pinMode(sdPin, OUTPUT);
+  if (!SD.begin(sdPin)) {
     Serial.println("initialization failed!");
     return;
   }
-  Serial.println("initialization done.");
-  
-  //Initialize RTC
-  Wire.begin();
-  RTC.begin();
+  Serial.println("initialization done.");*/
   
   //Set system on text mode
   //cell.println("AT+CMGF=1");
 }
 
 void loop() {
-  DateTime now = RTC.now();
-  long timeDiff = now.unixtime() - lastLoggedTime;
-  Serial.println("timeDiff is " + String(timeDiff));
+  emon1.setPins(voltPin, currentPin);    //emonTX AC-AC voltage (ADC2), current pin (CT1 - ADC3) 
+  emon1.calibration(238.5, 138.8,1.7);   //voltage calibration , current calibration, power factor calibration. See: http://openenergymonitor.org/emon/emontx/acac
+  emon1.calc(20,2000,vcc);               //No.of wavelengths, time-out , emonTx supply voltage 
+  emon1.serialprint();
+  
+  long now = millis();
+  long timeDiff = now - lastLoggedTime();
   if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
     //Open or create log file on SD card
     logFile = SD.open("log.csv", FILE_WRITE);
     if (logFile) {
       Serial.println("writing entry to log");
-      writeLogEntry("Seconds are " + String(now.second()));
+      writeLogEntry("millis is " + now);
       logFile.close();
-      lastLoggedTime = now.unixtime();
+      lastLoggedTime = now;
     } else {
       Serial.println("error openening log.csv");
     }
-  }
+  }*/
   
   //repeatedly read any input from the cellphone
   /*cellReadLine();
@@ -168,6 +168,21 @@ void cellReadLine() {
 
 void writeLogEntry(String logEntry) {
   logFile.println(logEntry);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Read current emonTx battery voltage - not main supplyV!
+//--------------------------------------------------------------------------------------------------
+long readVcc() {
+  long result;
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  delay(2);
+  ADCSRA |= _BV(ADSC);
+  while (bit_is_set(ADCSRA,ADSC));
+  result = ADCL;
+  result |= ADCH<<8;
+  result = 1126400L / result;
+  return result;
 }
 
 
