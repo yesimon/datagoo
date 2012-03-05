@@ -68,19 +68,21 @@ void setup()
 }
 
 void loop() {
+  int vcc = readVcc();
+  
   emon1.setPins(voltPin, currentPin);    //emonTX AC-AC voltage (ADC2), current pin (CT1 - ADC3) 
-  emon1.calibration(238.5, 138.8,1.7);   //voltage calibration , current calibration, power factor calibration. See: http://openenergymonitor.org/emon/emontx/acac
-  emon1.calc(20,2000,vcc);               //No.of wavelengths, time-out , emonTx supply voltage 
+  emon1.calibration(238.5, 138.8, 1.7);  //voltage calibration , current calibration, power factor calibration. See: http://openenergymonitor.org/emon/emontx/acac
+  emon1.calc(20, 2000, vcc);             //No.of wavelengths, time-out , emonTx supply voltage 
   emon1.serialprint();
   
-  long now = millis();
+  /*long now = millis();
   long timeDiff = now - lastLoggedTime();
   if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
     //Open or create log file on SD card
     logFile = SD.open("log.csv", FILE_WRITE);
     if (logFile) {
       Serial.println("writing entry to log");
-      writeLogEntry("millis is " + now);
+      logFile.println("millis is " + now);
       logFile.close();
       lastLoggedTime = now;
     } else {
@@ -146,6 +148,12 @@ void NetworkSetup() {
   }
 }
 
+/*
+ * Repeatedly tries to read a character from the cell phone's serial output
+ * until it sees an end-of-line character (\r) or the serial output overflows.
+ * This allows us to deal with lines and responses to our commands, rather than
+ * individual ch
+ */
 void cellReadLine() {
   while (1) {
     if (cell.available()) {
@@ -166,13 +174,9 @@ void cellReadLine() {
   }
 }
 
-void writeLogEntry(String logEntry) {
-  logFile.println(logEntry);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Read current emonTx battery voltage - not main supplyV!
-//--------------------------------------------------------------------------------------------------
+/*
+ * Read current emonTx battery voltage - not main supplyV!
+ */
 long readVcc() {
   long result;
   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
