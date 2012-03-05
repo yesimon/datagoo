@@ -27,6 +27,8 @@ http://creativecommons.org/licenses/by/3.0/
 #include <RTClib.h>         //Real Time Clock
 //#include <JeeLib.h>
 //#include <avr/wdt.h>
+#include "EmonLib.h"
+EnergyMonitor emon1;
 
 String inputString = "";
 
@@ -72,6 +74,24 @@ void setup()
 }
 
 void loop() {
+  
+  //------------------------------------------------
+  // MEASURE FROM CT'S
+  // Calibration notes:
+  // 212.6 is a suitable calibration value for the Euro AC-AC adapter http://uk.rs-online.com/web/p/products/459-853/
+  // 237.3 is a suitable calibration value for the UK AC-AC adapter http://uk.rs-online.com/web/p/products/400-6484/
+  //------------------------------------------------
+  // Example Calibration code - deprecated
+  //   emon1.setPins(2,0);                    //emonTX AC-AC voltage (ADC2), current pin (CT1 - ADC3) 
+  //   emon1.calibration(238.5, 138.8,1.7);   //voltage calibration , current calibration, power factor calibration. See: http://openenergymonitor.org/emon/emontx/acac
+  // Calibrate instead according to https://github.com/openenergymonitor/EmonLib/blob/master/EmonLib.cpp
+  emon1.calcVI(20,2000);               //No.of wavelengths, time-out , emonTx supply voltage 
+  emon1.serialprint();
+  //String logEntry = String(emon1.realPower) + ' ' + String(emon1.apparentPower) + ' ' + String(emon1.Vrms) + ' ' + String(emon1.Irms) + ' ' + String(emon1.powerFactor);
+  
+
+  
+  
   DateTime now = RTC.now();
   long timeDiff = now.unixtime() - lastLoggedTime;
   Serial.println("timeDiff is " + String(timeDiff));
