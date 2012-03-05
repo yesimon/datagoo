@@ -7,8 +7,10 @@
 *.egg
 *.EGG
 *.EGG-INFO
+.DS_Store
 bin
 build
+_build
 develop-eggs
 downloads
 eggs
@@ -23,6 +25,4 @@ dist
 *.pyc
 *.pyo
 *.tmp*
-.ropeproject/
-dev.sqlite
-local_settings.py
+
