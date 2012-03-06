@@ -13,6 +13,7 @@ Contents:
 
    mission
    ac_math
+   hardware_parts
 
 Project Description
 ===================
