@@ -20,9 +20,10 @@ http://creativecommons.org/licenses/by/3.0/
 (Use our code freely! Please just remember to give us credit where it's due. Thanks!)
 */
 
-#include <SoftwareSerial.h> //Include the SoftwareSerial library to send serial commands to the cellular module.
+#include <Arduino.h>
 #include <string.h>         //Used for string manipulations
 #include <SD.h>             //SD card interface
+#include <SoftwareSerial.h> //Include the SoftwareSerial library to send serial commands to the cellular module.
 //#include <JeeLib.h>
 //#include <avr/wdt.h>
 #include "EmonLib.h"
@@ -31,7 +32,7 @@ http://creativecommons.org/licenses/by/3.0/
 #define currentPin 0
 #define voltPin 1
 
-String mobileNumber = "6503845765" //phone number to text status updates to
+String mobileNumber = "6503845765"; //phone number to text status updates to
 
 String inputString = ""; //used to read input from the cell phone module
 
@@ -46,101 +47,19 @@ EnergyMonitor emon1; //used to do the actual energy calculations
 
 //ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
-void setup()
-{
-  //Initialize serial ports for communication.
-  Serial.begin(9600);
-  //cell.begin(9600);
-  
-  Serial.println("Starting SM5100B Communication...");
-  
-  //Wait until network registration before entering main loop
-  //delay(25000);
-  
-  //Initialize SD card
-  /*pinMode(sdPin, OUTPUT);
-  if (!SD.begin(sdPin)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");*/
-  
-  
-  //cell.println("AT+CMGF=1"); //Set system on text mode
-  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
-  
-  //setup voltage/current monitoring
-  emon1.voltage(voltPin, 238.5, 1.7);  // Voltage: input pin, calibration, phase_shift
-  emon1.current(currentPin, 138.8);       // Current: input pin, calibration
-}
-
-void loop() {
-  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
-  emon1.serialprint();           // Print out all variables
-  
-  /*long now = millis();
-  long timeDiff = now - lastLoggedTime();
-  if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
-    //Open or create log file on SD card
-    logFile = SD.open("log.csv", FILE_WRITE);
-    if (logFile) {
-      Serial.println("writing entry to log");
-      logFile.println("millis is " + now);
-      logFile.close();
-      lastLoggedTime = now;
-    } else {
-      Serial.println("error openening log.csv");
-    }
-  }*/
-  
-  //wrap all calls to cellReadLine() in a cell.available() check
-  //to make sure we have something to read before blocking
-  
-  //repeatedly read any input from the cellphone
-  if (cell.available()) {
-    cellReadLine();
-    if (inputString.startsWith("datagootext") {
-      changeTextNumber(inputString);
-    }
-    inputString = "";
-  }
-  
-  //send some test texts
-  /*if (numTextsSent < 2) {
-    cell.println("AT+CCLK?"); //clocktime
-    cellReadLine();
-    SendText(inputString);
-    numTextsSent++;
-    inputString = "";
-  }*/
-}
-
-
 /*-------------------------------------------------------------------
  * Helper Functions
  * ------------------------------------------------------------------ */
 
 void changeTextNumber(String text) {
   int prefixLen = 12; //strlen("datagootext ") with space
-  mobileNumber = text.substring(prefixLen).trim();
-}
-
-/*
- * Use this function to text (over GSM) the string 'msg' to the cell
- * phone number mobileNumber.
- *
- * startSMS and endSMS are helper functions for this function and shouldn't
- * be required by anything external (like the main loop)
- */
-void SendText(String msg) {
-  startSMS(mobileNumber);
-  cell.print(msg);
-  endSMS();
+  String mobileNumber = text.substring(prefixLen);
+  mobileNumber.trim();
 }
 
 /* These functions basically print some magic strings to the cell module
  * to send texts. The information on what is expected is found here:
- * http://www.sparkfun.com/datasheets/CellularShield/SM5100B%20AT%20Command%20Set.pdf 
+ * http://www.sparkfun.com/datasheets/CellularShield/SM5100B%20AT%20Command%20Set.pdf
  */
 void startSMS(String mobileNumber)
 {
@@ -160,6 +79,53 @@ void endSMS()
   //delay(15000); // the SMS module needs time to return to OK status
 }
 
+/*
+ * Use this function to text (over GSM) the string 'msg' to the cell
+ * phone number mobileNumber.
+ *
+ * startSMS and endSMS are helper functions for this function and shouldn't
+ * be required by anything external (like the main loop)
+ */
+void SendText(String msg) {
+  startSMS(mobileNumber);
+  cell.print(msg);
+  endSMS();
+}
+
+
+/*
+ * Repeatedly tries to read a character from the cell phone's serial output
+ * until it sees an end-of-line character (\r) or the serial output overflows.
+ * This allows us to deal with lines and responses to our commands, rather than
+ * the individual characters that the Serial interface returns
+ */
+void cellReadLine() {
+  long lastReadT = millis(); //keep track of when we started waiting for input
+
+  while (1) {
+    if (cell.available()) { //if there is available input from the cell
+      char c = cell.read(); //read it
+      lastReadT = millis(); //and update our timer
+
+      if (c == -1 || c == '\n') { //ignore these characters
+        continue;
+      }
+      if (c == '\r' || cell.overflow()) { //and return in these cases
+        return;
+      }
+
+      inputString += c; //add the character we just read to our string
+    }
+
+    //don't loop waiting for a complete line for more than a minute
+    if (millis() - lastReadT > 60000) {
+      return;
+    }
+  }
+}
+
+
+
 
 void NetworkSetup() {
   while(1) {
@@ -174,36 +140,77 @@ void NetworkSetup() {
   }
 }
 
-/*
- * Repeatedly tries to read a character from the cell phone's serial output
- * until it sees an end-of-line character (\r) or the serial output overflows.
- * This allows us to deal with lines and responses to our commands, rather than
- * the individual characters that the Serial interface returns 
- */
-void cellReadLine() {
-  long lastReadT = millis(); //keep track of when we started waiting for input
-  
-  while (1) {
-    if (cell.available()) { //if there is available input from the cell
-      char c = cell.read(); //read it
-      lastReadT = millis(); //and update our timer
-      
-      if (c == -1 || c == '\n') { //ignore these characters
-        continue;
-      }
-      if (c == '\r' || cell.overflow()) { //and return in these cases
-        return;
-      }
-      
-      inputString += c; //add the character we just read to our string
-    }
-    
-    //don't loop waiting for a complete line for more than a minute
-    if (millis() - lastReadT > 60000) {
-      return; 
-    }
+
+
+void setup()
+{
+  //Initialize serial ports for communication.
+  Serial.begin(9600);
+  //cell.begin(9600);
+
+  Serial.println("Starting SM5100B Communication...");
+
+  //Wait until network registration before entering main loop
+  //delay(25000);
+
+  //Initialize SD card
+  /*pinMode(sdPin, OUTPUT);
+  if (!SD.begin(sdPin)) {
+    Serial.println("initialization failed!");
+    return;
   }
+  Serial.println("initialization done.");*/
+
+
+  //cell.println("AT+CMGF=1"); //Set system on text mode
+  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
+
+  //setup voltage/current monitoring
+  emon1.voltage(voltPin, 238.5, 1.7);  // Voltage: input pin, calibration, phase_shift
+  emon1.current(currentPin, 138.8);       // Current: input pin, calibration
 }
+
+void loop() {
+  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
+  emon1.serialprint();           // Print out all variables
+
+  /*long now = millis();
+  long timeDiff = now - lastLoggedTime();
+  if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
+    //Open or create log file on SD card
+    logFile = SD.open("log.csv", FILE_WRITE);
+    if (logFile) {
+      Serial.println("writing entry to log");
+      logFile.println("millis is " + now);
+      logFile.close();
+      lastLoggedTime = now;
+    } else {
+      Serial.println("error openening log.csv");
+    }
+  }*/
+
+  //wrap all calls to cellReadLine() in a cell.available() check
+  //to make sure we have something to read before blocking
+
+  //repeatedly read any input from the cellphone
+  if (cell.available()) {
+    cellReadLine();
+    if (inputString.startsWith("datagootext")) {
+      changeTextNumber(inputString);
+    }
+    inputString = "";
+  }
+
+  //send some test texts
+  /*if (numTextsSent < 2) {
+    cell.println("AT+CCLK?"); //clocktime
+    cellReadLine();
+    SendText(inputString);
+    numTextsSent++;
+    inputString = "";
+  }*/
+}
+
 
 
 /* SM5100B Quck Reference for AT Command Set
@@ -217,7 +224,7 @@ With a terimal window open and set to Arduino port and 9600 buad, power on the A
 like this:
 
 Starting SM5100B Communication...
-    
+
 +SIND: 1
 +SIND: 10,"SM",1,"FD",1,"LD",1,"MC",1,"RC",1,"ME",1
 
@@ -263,3 +270,4 @@ Tera Term, Bray Terminal or X-CTU.
 
 The SM5100B module can do much more than this! Check out the datasheets on the product page to learn more about the module.
 */
+

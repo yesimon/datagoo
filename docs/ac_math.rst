@@ -7,7 +7,7 @@ AC Math Theory
 This page covers the mathematics behind calculating real power,
 apparent power, power factor, RMS voltage and RMS current from
 instantaneous Voltage and Current measurements of single phase AC
-electricity. Discreet time equations are detailed since the
+electricity. Discrete time equations are detailed since the
 calculations are carried out in the Arduino in the digital
 domain. There are also code snippets of the equations included below:
 
@@ -89,13 +89,11 @@ Substitute V for I for current.
 
 **Apparent Power and Power Factor**
 
-Apparent power is calculated, as follows:
+.. math::
 
-:math:`Apparent power = RMS Voltage x RMS current`
+   P_{apparent} = V_{rms} \times I_{rms}
 
-and the power factor:
-
-:math:`Power Factor = Real Power / Apparent Power`
+   cos(\varphi) = \frac{P_{real}}{P_{apparent}}
 
 **Bringing it all together**
 
@@ -120,5 +118,8 @@ The following snippet carries out all the measurements above::
 Thats it, thats the core of single phase AC power measurment
 calculation.
 
-This page is based on Atmel's AVR465 appnote page 12-15 which can be
+This page is based on Atmel's AVR465 Application Note pp. 12-15 which can be
 found `here <http://www.atmel.com/dyn/resources/prod_documents/doc2566.pdf>`_.
+
+Page referenced from `OpenEnergyMonitor <http://openenergymonitor.org/emon/buildingblocks/ac-power-the-maths>`_.
+
