@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   quickstart
    mission
    ac_math
    hardware_parts
