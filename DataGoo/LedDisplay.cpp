@@ -1,3 +1,4 @@
+#include "LedDisplay.h"
 #include <Arduino.h>
 #include "binary.h"
 typedef uint8_t boolean;
@@ -34,7 +35,7 @@ const byte portC_digits_bitmask = B00000011;
 //Expects a number between 0 and 9 to write to a digit
 
 /*
- * Function that writes a number to the seven segment display. Currently supports 0-9, will soon support -> 99
+ * Function that writes a number (0-99) to the seven segment display.
  */
 void seg_write(int digit){
   digitalWrite(A5, LOW);
@@ -72,6 +73,7 @@ void seg_init(){
   digitalWrite(A3, HIGH); //F
   digitalWrite(A2, HIGH); //G
 }
+
 void seg_swap(){
   PORTC = PORTC ^ B00110000; //Toggle the characters
   if(seg_dig){
