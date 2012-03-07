@@ -27,6 +27,8 @@ http://creativecommons.org/licenses/by/3.0/
 //#include <JeeLib.h>
 //#include <avr/wdt.h>
 #include "EmonLib.h"
+#include "MsTimer2.h"
+#include "LedDisplay.h"
 
 #define sdPin 10
 #define currentPin 0
@@ -144,6 +146,12 @@ void NetworkSetup() {
 
 void setup()
 {
+
+  seg_init();
+  //MsTimer2::set(10, seg_swap); // 500ms period
+  //MsTimer2::start();
+
+
   //Initialize serial ports for communication.
   Serial.begin(9600);
   cell.begin(9600);
@@ -184,6 +192,8 @@ void setup()
 void loop() {
   emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
   emon1.serialprint();           // Print out all variables
+  emon1.calcVI(10, 5);
+  seg_write((int) emon1.readPower);
 
   /*long now = millis();
   long timeDiff = now - lastLoggedTime();

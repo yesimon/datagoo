@@ -27,6 +27,8 @@ http://creativecommons.org/licenses/by/3.0/
 //#include <JeeLib.h>
 //#include <avr/wdt.h>
 #include "EmonLib.h"
+#include "MsTimer2.h"
+#include "LedDisplay.h"
 
 #define sdPin 10
 #define currentPin 0
@@ -144,6 +146,8 @@ void NetworkSetup() {
 
 void setup()
 {
+  seg_init();
+
   //Initialize serial ports for communication.
   Serial.begin(9600);
   cell.begin(9600);
@@ -182,12 +186,14 @@ void setup()
 }
 
 void loop() {
-  //emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
-  //emon1.serialprint();           // Print out all variables
+  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
+  emon1.serialprint();           // Print out all variables
+  seg_write((int) emon1.Irms);
+  seg_swap();
 
-  long now = millis();
-  long timeDiff = now - lastLoggedTime;
-  if (timeDiff > 10*1000) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
+  /*long now = millis();
+  long timeDiff = now - lastLoggedTime();
+  if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
     //Open or create log file on SD card
     logFile = SD.open("log.csv", FILE_WRITE);
     if (logFile) {
@@ -198,7 +204,7 @@ void loop() {
     } else {
       Serial.println("error openening log.csv");
     }
-  }
+  }*/
 
   //wrap all calls to cellReadLine() in a cell.available() check
   //to make sure we have something to read before blocking
