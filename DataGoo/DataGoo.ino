@@ -32,7 +32,7 @@ http://creativecommons.org/licenses/by/3.0/
 #define currentPin 0
 #define voltPin 1
 
-String mobileNumber = "6503845765"; //phone number to text status updates to
+String mobileNumber; //phone number to text status updates to
 
 String inputString = ""; //used to read input from the cell phone module
 
@@ -51,11 +51,11 @@ EnergyMonitor emon1; //used to do the actual energy calculations
  * Helper Functions
  * ------------------------------------------------------------------ */
 
-void changeTextNumber(String text) {
+/*void changeTextNumber(String text) {
   int prefixLen = 12; //strlen("datagootext ") with space
   String mobileNumber = text.substring(prefixLen);
   mobileNumber.trim();
-}
+}*/
 
 /* These functions basically print some magic strings to the cell module
  * to send texts. The information on what is expected is found here:
@@ -146,23 +146,34 @@ void setup()
 {
   //Initialize serial ports for communication.
   Serial.begin(9600);
-  //cell.begin(9600);
+  cell.begin(9600);
 
   Serial.println("Starting SM5100B Communication...");
 
   //Wait until network registration before entering main loop
-  //delay(25000);
+  delay(25000);
 
   //Initialize SD card
-  /*pinMode(sdPin, OUTPUT);
+  pinMode(sdPin, OUTPUT);
   if (!SD.begin(sdPin)) {
     Serial.println("initialization failed!");
     return;
   }
-  Serial.println("initialization done.");*/
+  Serial.println("initialization done.");
 
+  //read the cell number to text off the SD card
+  cellFile = SD.open("cell.txt");
+  if (cellFile) {
+    while (cellFile.available()) {
+      mobileNumber += cellFile.read();
+    }
+    mobileNumber.trim(); //get rid of whitespace
+  } else {
+    Serial.println("Please make a file called CELL.TXT on the SD card " + \
+      "containing the phone number you would like power logger to text with daily stats");
+  }
 
-  //cell.println("AT+CMGF=1"); //Set system on text mode
+  cell.println("AT+CMGF=1"); //Set system on text mode
   //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
 
   //setup voltage/current monitoring
