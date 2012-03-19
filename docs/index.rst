@@ -9,13 +9,20 @@ DataGoo Documentation
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    quickstart
-   mission
+   overview
    ac_math
+   systems_design
    hardware_parts
-   libraries
+   components
+   cost
+   electrical
+   mechanical
+   software
+   software_libraries
+
 
 Project Description
 ===================
@@ -38,4 +45,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
