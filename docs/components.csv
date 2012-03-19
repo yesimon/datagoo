@@ -37,14 +37,14 @@ RES 1.0 OHM 1/8W 5% 0805 SMD,R13,311-1.0ARCT-ND,1,Digikey,311-1.0ARCT-ND
 "LED 7-SEG .40 2DGT SUPER RED CA""",D4,7SEG_2DIG_LTD-4608JR,1,Digikey,160-1538-5-ND
 IC USB FS SERIAL UART 28-SSOP,U3,USB->SERIAL,1,Digikey, 768-1007-1-N
  Polymer Li-Ion Cell:3.7V 210mAh ,J5,LITHIUM_BATTERY,,Batteryspace,PL-651628-2C
-Quad-band cellular antenna,,,,Sparkfun,CEL-00675
+Quad-band cellular antenna,,,1,Sparkfun,CEL-00675
  SM5100B-D GSM/GPRS Module,J6,GSM MODULE,,Sparkfun,CEL-09533
-AVR Programming Header,None,CONN HEADER 6POS .100 STR 15A,,Digikey,609-3210-ND
-3D Printed Case Upper,None,,,Shapeways,N/A
-3D Printed Case Lower,None,,,Shapeways,N/A
-3D Printed Case High Voltage Cover,None,,,Shapeways,N/A
-USB Charger,None,,,Any Supplier,
-Power Cable,None,,,Dumpster,
+AVR Programming Header,None,CONN HEADER 6POS .100 STR 15A,1,Digikey,609-3210-ND
+3D Printed Case Upper,None,,1,Shapeways,N/A
+3D Printed Case Lower,None,,1,Shapeways,N/A
+3D Printed Case High Voltage Cover,None,,1,Shapeways,N/A
+USB Charger,None,,1,Any Supplier,
+Power Cable,None,,1,Dumpster,
 "Tri-P Phillips Thread-Forming Screw for Plastic, Black-Finish Zinc-Plated Steel, 4-20",None,,4,Mcmaster-Carr,92295A106
 "Metric Nylon Fluted-Rim Knob, M4 X .7 Threaded Insert, 16 mm Diameter",None,,2,Mcmaster-Carr,62935K15
 "Metric Pan Head Phillips Machine Screw, Zinc-Plated Steel, M3 Size, 5MM Length, .5MM Pitch",None,,4,Mcmaster-Carr,92005A114

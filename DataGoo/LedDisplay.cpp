@@ -37,11 +37,10 @@ const byte portC_digits_bitmask = B00000011;
 /*
  * Function that writes a number (0-99) to the seven segment display.
  */
-void seg_write(int digit){
-  digitalWrite(A5, LOW);
-  digitalWrite(A4, HIGH);
-  seg_dig = 1;
-
+void display_write(int digit){
+  
+  while(digit >= 100) digit = digit/10;
+    
   //Turn on ALL the digits
   seg_onesD = seven_seg_hex[digit % 10][0];
   seg_onesB = seven_seg_hex[digit % 10][1];
@@ -52,7 +51,7 @@ void seg_write(int digit){
 }
 
 //Inits the pins for the seven segment display. Must be called in setup()
-void seg_init(){
+void display_init(){
   pinMode(A4, OUTPUT); //Digit Two
   pinMode(A5, OUTPUT); //Digit One
   pinMode(5, OUTPUT); //Segment A
@@ -72,9 +71,13 @@ void seg_init(){
   digitalWrite(9, HIGH); //E
   digitalWrite(A3, HIGH); //F
   digitalWrite(A2, HIGH); //G
+ 
+  digitalWrite(A5, LOW);
+  digitalWrite(A4, HIGH);
+  seg_dig = 1;
 }
 
-void seg_swap(){
+void display_switch_digit(){
   PORTC = PORTC ^ B00110000; //Toggle the characters
   if(seg_dig){
     PORTD = (PORTD & ~portD_bitmask) | (seg_onesD);

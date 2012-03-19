@@ -53,6 +53,7 @@ int numTextsSent = 0;
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
+float calibrationConstants[3] = {238.5, 1.7, 75.71};
 File logFile; //the file on the SD card that we are writing to
 long lastLoggedTime = 0; //and the time that file was last written to
 
@@ -60,9 +61,138 @@ EnergyMonitor emon1; //used to do the actual energy calculations
 
 //ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
+void parseCalibrationString(String calibrationString);
+void startSMS(String mobileNumber);
+void endSMS();
+void SendText(String msg);
+void cellReadLine();
+void writeLogHeader(); 
+void writeLogEntry(long time);
+void setup();
+void loop();
+
+void setup()
+{
+  display_init();  // Initialize LED Display
+  MsTimer2::set(10, display_switch_digit); // 500ms period
+  MsTimer2::start();
+  //display_write(97);
+  
+  //Initialize serial ports for communication.
+  Serial.begin(9600);
+  cell.begin(9600);
+
+  //Wait until network registration before entering main loop
+  //delay(25000);
+
+  //Initialize SD card
+  pinMode(sdPin, OUTPUT);
+  if (!SD.begin(sdPin)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+
+  //read the cell number to text off the SD card
+  File cellFile = SD.open("cell.txt");
+  if (cellFile) {
+    while (cellFile.available()) {
+      mobileNumber += cellFile.read();
+    }
+    mobileNumber.trim(); //get rid of whitespace
+  } else {
+    Serial.println("Please make a file called CELL.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
+  }
+  File calibrationFile = SD.open("calibration.txt");
+  String calibrationString;
+  if (calibrationFile) {
+    while (calibrationFile.available()) {
+      calibrationString += cellFile.read();
+    }
+    calibrationString.trim(); //get rid of whitespace
+    parseCalibrationString(calibrationString);
+  } else {
+    Serial.println("Please make a file called CALIBRATION.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
+  }
+
+  //cell.println("AT+SBAND=?"); //TODO
+  cell.println("AT+CMGF=1"); //Set system on text mode
+  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
+
+  // Voltage/Current calibration
+  emon1.voltage(voltPin, calibrationConstants[0], calibrationConstants[1]);  // Voltage: input pin, calibration, phase_shift
+  emon1.current(currentPin, calibrationConstants[2]);       // Current: input pin, calibration
+}
+
+void loop() {
+  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
+  //emon1.serialprint();           // Print out all variables
+  display_write((int) emon1.apparentPower / 1000);
+
+  long now = millis();
+  long timeDiff = now - lastLoggedTime;
+  if (timeDiff > 10000) { //24 hrs * 60 mins * 60 secs * 1000 ms = 86,400,000 millisecs/day
+    //Open or create log file on SD card
+    logFile = SD.open("log.csv", FILE_WRITE);
+    if (logFile) {
+      writeLogEntry(now);
+      logFile.close();
+      lastLoggedTime = now;
+    } else {
+      Serial.println("error openening log.csv");
+    }
+  }
+
+  //wrap all calls to cellReadLine() in a cell.available() check
+  //to make sure we have something to read before blocking
+
+  //repeatedly read any input from the cellphone
+  /*if (cell.available()) {
+    cellReadLine();
+    if (inputString.startsWith("datagootext")) {
+      changeTextNumber(inputString);
+    }
+    inputString = "";
+  }*/
+
+  //send some test texts
+  /*if (numTextsSent < 2) {
+    cell.println("AT+CCLK?"); //clocktime
+    cellReadLine();
+    SendText(inputString);
+    numTextsSent++;
+    inputString = "";
+  }*/
+} 
+  
 /*-------------------------------------------------------------------
  * Helper Functions
  * ------------------------------------------------------------------ */
+
+void parseCalibrationString(String calibrationString) {
+  int calStringLen = calibrationString.length();
+  int i = 0;
+  int j = 0;
+  String calibrationConstantTemp;
+
+  for (i=0; i < calStringLen; i++) {
+    char calArray[15];
+    char c = calibrationString[i];
+    if (c == '\n') {
+      calibrationConstantTemp.toCharArray(calArray, 14);
+      calibrationConstants[j] = atof(calArray);
+      calibrationConstantTemp = "";
+      j++;
+    }
+    else if (c == ' ') {
+      continue; 
+    }
+    else {
+      calibrationConstantTemp += c;
+    }
+  } 
+}
+
 
 /* These functions basically print some magic strings to the cell module
  * to send texts. The information on what is expected is found here:
@@ -150,97 +280,12 @@ void writeLogEntry(long time) {
   logFile.print(",");
   logFile.print(emon1.Irms);
   logFile.print(",");
-  logFile.print(emon1.realPower);
+  logFile.print(emon1.apparentPower);
   logFile.println();
 }
 
 
-void setup()
-{
-  seg_init();
-  //MsTimer2::set(10, seg_swap); // 500ms period
-  //MsTimer2::start();
-
-  //Initialize serial ports for communication.
-  Serial.begin(9600);
-  cell.begin(9600);
-
-  //Wait until network registration before entering main loop
-  delay(25000);
-
-  //Initialize SD card
-  pinMode(sdPin, OUTPUT);
-  if (!SD.begin(sdPin)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");
-
-  //read the cell number to text off the SD card
-  File cellFile = SD.open("cell.txt");
-  if (cellFile) {
-    while (cellFile.available()) {
-      mobileNumber += cellFile.read();
-    }
-    mobileNumber.trim(); //get rid of whitespace
-  } else {
-    Serial.println("Please make a file called CELL.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
-  }
-
-  //cell.println("AT+SBAND=?"); //TODO
-  cell.println("AT+CMGF=1"); //Set system on text mode
-  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
-
-  //TODO: calibration
-  //setup voltage/current monitoring
-  emon1.voltage(voltPin, 238.5, 1.7);  // Voltage: input pin, calibration, phase_shift
-  emon1.current(currentPin, 138.8);       // Current: input pin, calibration
-}
-
-void loop() {
-  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
-  //emon1.serialprint();           // Print out all variables
-  seg_write((int) emon1.realPower);
-
-  long now = millis();
-  long timeDiff = now - lastLoggedTime();
-  if (timeDiff > 10000) { //24 hrs * 60 mins * 60 secs * 1000 ms = 86,400,000 millisecs/day
-    //Open or create log file on SD card
-    logFile = SD.open("log.csv", FILE_WRITE);
-    if (logFile) {
-      writeLogEntry(now);
-      logFile.close();
-      lastLoggedTime = now;
-    } else {
-      Serial.println("error openening log.csv");
-    }
-  }
-
-  //wrap all calls to cellReadLine() in a cell.available() check
-  //to make sure we have something to read before blocking
-
-  //repeatedly read any input from the cellphone
-  /*if (cell.available()) {
-    cellReadLine();
-    if (inputString.startsWith("datagootext")) {
-      changeTextNumber(inputString);
-    }
-    inputString = "";
-  }*/
-
-  //send some test texts
-  /*if (numTextsSent < 2) {
-    cell.println("AT+CCLK?"); //clocktime
-    cellReadLine();
-    SendText(inputString);
-    numTextsSent++;
-    inputString = "";
-  }*/
-}
-
-
-
-/* SM5100B Quck Reference for AT Command Set
+/* SM5100B Quick Reference for AT Command Set
 *Unless otherwise noted AT commands are ended by pressing the 'enter' key.
 
 1.) Make sure the proper GSM band has been selected for your country. For the US the band must be set to 7.

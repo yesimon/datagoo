@@ -39,4 +39,8 @@ There are several known errors in the layout:
 Schematic
 =========
 
+.. image:: images/electrical_schematic.png
+   :width: 100 %
+   :target: _downloads/electrical_schematic.pdf
+
 :download:`Electrical Schematic <images/electrical_schematic.pdf>`.
