@@ -1,18 +1,29 @@
 /*
-SparkFun Cellular Shield - Pass-Through Sample Sketch
-SparkFun Electronics
-Written by Ryan Owens
-3/8/10
+DataGoo Firmware
+Written by Ravi Sankar, Simon Ye, and Nathan Hall-Snyder
+3/21/12
 
-Description: This sketch is written to interface an Arduino Duemillanove to a  Cellular Shield from SparkFun Electronics.
-The cellular shield can be purchased here: http://www.sparkfun.com/commerce/product_info.php?products_id=9607
-In this sketch serial commands are passed from a terminal program to the SM5100B cellular module; and responses from the cellular
-module are posted in the terminal. More information is found in the sketch comments.
+Description: This code is primarily designed for an open source energy-monitoring board, which
+you can find details for at http://readthedocs.org/docs/datagoo/en/latest/index.html. However, it
+can also run on a Cellular Shield from SparkFun Electronics, an SD Card Shield from Adafruit, and
+an Arduino board. Details on those parts are also available at the readthedocs link.
 
 An activated SIM card must be inserted into the SIM card holder on the board in order to use the device!
+The device also requires a writeable SD card.
 
-This sketch utilizes the SoftwareSerial library written by Mikal Hart of Arduiniana. The library can be downloaded at this URL:
-http://arduiniana.org/libraries/SoftwareSerial/
+This sketch utilizes the following external libraries:
+The EmonLib library written by Trystan Lea of OpenEnergyMonitor. The library can be downloaded at this URL:
+https://github.com/openenergymonitor/EmonLib
+The MsTimer2 library written by Javier Valencia. The library can be downloaded at this URL:
+http://arduino.cc/playground/Main/MsTimer2
+The JeeLib libraries written by the folks at JeeLabs.net. The libraries can be found from:
+http://jeelabs.net/projects/cafe/wiki
+
+and the following libraries provided with the Arduino platform:
+The SoftwareSerial library: http://arduino.cc/en/Reference/SoftwareSerial
+The SD library: http://arduino.cc/en/Reference/SD
+The string library: http://arduino.cc/en/Reference/string
+The Arduino Watchdog library 
 
 This code is provided under the Creative Commons Attribution License. More information can be found here:
 http://creativecommons.org/licenses/by/3.0/
@@ -42,7 +53,7 @@ int numTextsSent = 0;
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
-File logFile; //the file on the SD card taht we are writing to
+File logFile; //the file on the SD card that we are writing to
 long lastLoggedTime = 0; //and the time that file was last written to
 
 EnergyMonitor emon1; //used to do the actual energy calculations
@@ -52,12 +63,6 @@ EnergyMonitor emon1; //used to do the actual energy calculations
 /*-------------------------------------------------------------------
  * Helper Functions
  * ------------------------------------------------------------------ */
-
-/*void changeTextNumber(String text) {
-  int prefixLen = 12; //strlen("datagootext ") with space
-  String mobileNumber = text.substring(prefixLen);
-  mobileNumber.trim();
-}*/
 
 /* These functions basically print some magic strings to the cell module
  * to send texts. The information on what is expected is found here:
@@ -127,36 +132,38 @@ void cellReadLine() {
 }
 
 
-
-
-void NetworkSetup() {
-  while(1) {
-    cell.println("AT+CREG?");
-    cellReadLine();
-    Serial.println(inputString);
-    if (inputString == "+CREG: 0,1") {
-      return;
-    }
-    inputString = "";
-    delay(5000);
-  }
+void writeLogHeader() {
+  logFile.print("Time (ms since startup)");
+  logFile.print(",");
+  logFile.print("Voltage");
+  logFile.print(",");
+  logFile.print("Current");
+  logFile.print(",");
+  logFile.print("Power");
+  logFile.println();
 }
 
+void writeLogEntry(long time) {
+  logFile.print(time);
+  logFile.print(",");
+  logFile.print(emon1.Vrms);
+  logFile.print(",");
+  logFile.print(emon1.Irms);
+  logFile.print(",");
+  logFile.print(emon1.realPower);
+  logFile.println();
+}
 
 
 void setup()
 {
-
   seg_init();
   //MsTimer2::set(10, seg_swap); // 500ms period
   //MsTimer2::start();
 
-
   //Initialize serial ports for communication.
   Serial.begin(9600);
   cell.begin(9600);
-
-  Serial.println("Starting SM5100B Communication...");
 
   //Wait until network registration before entering main loop
   delay(25000);
@@ -170,20 +177,21 @@ void setup()
   Serial.println("initialization done.");
 
   //read the cell number to text off the SD card
-  cellFile = SD.open("cell.txt");
+  File cellFile = SD.open("cell.txt");
   if (cellFile) {
     while (cellFile.available()) {
       mobileNumber += cellFile.read();
     }
     mobileNumber.trim(); //get rid of whitespace
   } else {
-    Serial.println("Please make a file called CELL.TXT on the SD card " + \
-      "containing the phone number you would like power logger to text with daily stats");
+    Serial.println("Please make a file called CELL.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
   }
 
+  //cell.println("AT+SBAND=?"); //TODO
   cell.println("AT+CMGF=1"); //Set system on text mode
   //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
 
+  //TODO: calibration
   //setup voltage/current monitoring
   emon1.voltage(voltPin, 238.5, 1.7);  // Voltage: input pin, calibration, phase_shift
   emon1.current(currentPin, 138.8);       // Current: input pin, calibration
@@ -191,36 +199,34 @@ void setup()
 
 void loop() {
   emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
-  emon1.serialprint();           // Print out all variables
-  emon1.calcVI(10, 5);
-  seg_write((int) emon1.readPower);
+  //emon1.serialprint();           // Print out all variables
+  seg_write((int) emon1.realPower);
 
-  /*long now = millis();
+  long now = millis();
   long timeDiff = now - lastLoggedTime();
-  if (timeDiff > 10) { //24 hrs * 60 mins * 60 secs = 86400 secs/day
+  if (timeDiff > 10000) { //24 hrs * 60 mins * 60 secs * 1000 ms = 86,400,000 millisecs/day
     //Open or create log file on SD card
     logFile = SD.open("log.csv", FILE_WRITE);
     if (logFile) {
-      Serial.println("writing entry to log");
-      logFile.println("millis is " + now);
+      writeLogEntry(now);
       logFile.close();
       lastLoggedTime = now;
     } else {
       Serial.println("error openening log.csv");
     }
-  }*/
+  }
 
   //wrap all calls to cellReadLine() in a cell.available() check
   //to make sure we have something to read before blocking
 
   //repeatedly read any input from the cellphone
-  if (cell.available()) {
+  /*if (cell.available()) {
     cellReadLine();
     if (inputString.startsWith("datagootext")) {
       changeTextNumber(inputString);
     }
     inputString = "";
-  }
+  }*/
 
   //send some test texts
   /*if (numTextsSent < 2) {
