@@ -8,4 +8,4 @@ cmake_minimum_required(VERSION 2.8)
 project(DataGoo C CXX)
 find_package(Arduino 1.0 REQUIRED)
 
-add_subdirectory(DataGoo)
+add_subdirectory(datagoo)
