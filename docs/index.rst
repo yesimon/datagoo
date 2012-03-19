@@ -15,6 +15,7 @@ Contents:
    mission
    ac_math
    hardware_parts
+   libraries
 
 Project Description
 ===================
