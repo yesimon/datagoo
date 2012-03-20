@@ -15,7 +15,6 @@ Contents:
    overview
    ac_math
    systems_design
-   hardware_parts
    components
    cost
    electrical
