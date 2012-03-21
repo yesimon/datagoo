@@ -14,6 +14,10 @@ Electrical
 .. image:: images/electrical_layout.png
    :width: 400px
 
+Description
+===========
+For a description of how each sub-system works, consult the Systems Design
+
 Schematic
 =========
 
