@@ -8,7 +8,9 @@ Downloading the Firmware
 =========================
 
 DataGoo's firmware is open-source and can be downloaded from GitHub:
-https://github.com/yesimon/datagoo
+https://github.com/yesimon/datagoo. Feel free to send a pull request
+if you to contribute changes either to the source code or the
+documentation.
 
 For write access to the repository, please contact Simon Ye at
 sye737+github@gmail.com.

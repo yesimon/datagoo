@@ -20,6 +20,7 @@ Contents:
    electrical
    mechanical
    software
+   team
 
 Project Description
 ===================
