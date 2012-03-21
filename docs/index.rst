@@ -35,7 +35,7 @@ designed for deployment in the field, so it uses a simpler output
 interface: text messages over GSM and logging to an SD card.
 
 .. image:: images/case_cad_transparent.png
-   :width: 100 %
+   :width: 70 %
 
 Indices and tables
 ==================
