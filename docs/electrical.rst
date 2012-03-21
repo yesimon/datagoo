@@ -7,7 +7,7 @@ Electrical
 
 .. warning::
 
-   Before trying to having the PCB manufactured, please contact
+   Before trying to have the PCB manufactured, please contact
    nhallsny@stanford.edu for the correct settings. For components and
    designators, check out the Bill of Materials
 

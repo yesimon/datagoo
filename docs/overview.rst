@@ -1,58 +1,86 @@
 .. _ref-overview:
 
-========
-Overview
-========
+================
+Project Overview
+================
 
 .. _ref-overview_mission:
 
-Mission
-=======
+Alterna's Mission
+==================
 
-Alterna installs micro-hydroelectric systems in off-grid locations in
-Guatemala. They currently have no good ways to monitor how much power these
-micro-hydro-plants produce, because off-the-shelf systems designed for
+Alterna on their mission:
+
+	Alterna is a Center for Innovation and Entrepreneurship based in 
+	Quetzaltenango, Guatemala. Our mission is to develop technologies and build 
+	local businesses that satisfy basic needs and provide economic growth 
+	opportunities for the Guatemalan people in an environmentally sustainable 
+	way.
+
+
+One of their major projects are micro-hydro plants in rural areas:
+
+	Two million Guatemalans live without access to electricity. The vast 
+	majority of these people live in rural areas. Expansion of the national grid 
+	to the areas that are left unserved is increasingly difficult due to 
+	geographic constraints.
+
+	Guatemala is also a country with great potential for utilization of 
+	hydroelectric power. The extensive rainfall and mountainous terrain of the 
+	country provide optimal conditions for generating electricity with water 
+	power.
+| http://www.alterna-la.org/en
+| http://www.alterna-la.org/en/projects/microhydro
+
+	
+Our Mission
+============
+
+Alterna currently has no good ways to monitor how much power these
+micro-hydro plants produce, because off-the-shelf systems designed for
 ultra-high current environments are expensive. Measuring power generation is
-useful both to understand the efficacy of these installations and because it is
-prerequisite to applying for carbon grants which can offset the costs of
-development. Therefore, we are developing a circuit based on the open-source
-Arduino platform which measures the current and voltage coming out of the
-installation, logs it to an SD card, and transmits daily SMS status updates over
-a GSM network. The circuit will be able to handle household voltages (~240V),
-currents up to 100A, and will cost around $200.
+useful both to understand the efficacy of these installations and because it
+is prerequisite to applying for carbon grants which can offset the costs of
+development. Therefore, we prototyped a circuit based on the open-source
+Arduino platform which measures single-phase AC power coming out of the
+installation, logs it to an SD card, and transmits daily SMS status updates
+over a GSM network. The circuit can handle household voltages (~240V),
+currents up to 100A, and costs around $200 (and as little as $100 when 
+produced at scale).
 
-Intended Purpose
-================
+Carbon Offsets
+---------------
+Becoming accredited to sell carbon offsets is not a trivial process and having
+information on kWh generated is only one part of it. Nevertheless, organizations
+like `ClimateTrust <http://www.climatetrust.org/>`_ exist to help organizations
+through the bureaucratic steps of the process, but they can't do anything
+without data, so we feel confident that this device will be an important part
+of offsetting micro-hydro costs with carbon offsets.
+
+The U.S. Department of Energy Clean Energy Application Center authored a report
+on selling carbon offsets, which you can read
+`here <http://www.chpcenternw.org/NwChpDocs/SellingCarbonOffsets.pdf>`_.
+
+Specs In More Detail
+---------------------
+**Intended Purpose**
+
 * Easy to use power measurement device
 * Cheap to make
-* Ability to monitor current and voltage on 1 and 3 phase system
-* Logs the data on an SD card
+* Able to monitor current and voltage on 1 phase system
+* Logs data to an SD card
 * GSM connectivity provides two functionality:
-* Sends an SMS if the voltage drops for more than 5 minutes
+* Sends an SMS if the voltage drops for an extended period
 * Sends a daily "power collected" SMS with the power generated during that day
 * Flexible design allows for reprogramming and hacking
 
-Intended Users
-==============
+**Intended Users**
+
 * Engineering graduates and other workers with basic technology fluency.
 * Designed so that it can be manufactured *relatively* easily.
 
-Target Capabilities
-===================
-"The generator produces and transmits 220V AC (which eventually either
-gets dropped down to 110 for household use, or used at 220 for certain
-tools/machines -- but the monitor should expect around 220V). There is
-also a controller circuit which maintains the frequency around 60Hz
-(+/- a few hertz) by keeping the load on the system at a constant
-level (i.e. using a "dump load" when necessary to keep the turbine
-spinning at a constant speed when the system is underloaded). Our
-current system is single phase, but there was a question/suggestion to
-support multiple input channels, so that power calculations for
-multi-phase systems could be done in software. " -Stephen, Alterna
-Foundation
+**Power Measurement Specifications**
 
-Power Measurement Specifications
-================================
 * Nominal voltage is 220V. Maximum we've seen was 225, minimum 219. There may be brief moments (around half a second or less) when it is much lower, down to 150V, when an extra heavy load is switched on.
 * Nominal frequency is 60 Hz. Minimum 59, maximum 62.5.
 * Single Phase AC.

@@ -15,29 +15,27 @@ Contents:
    overview
    ac_math
    systems_design
-   hardware_parts
    components
    cost
    electrical
    mechanical
    software
-   software_libraries
-
 
 Project Description
 ===================
-Alterna installs micro-hydroelectric systems in off-grid locations in
-Guatemala. They currently have no good ways to monitor how much power these
-micro-hydro-plants produce, because off-the-shelf systems designed for
-ultra-high current environments are expensive. Measuring power generation is
-useful both to understand the efficacy of these installations and because it is
-prerequisite to applying for carbon grants which can offset the costs of
-development. Therefore, we are developing a circuit based on the open-source
-Arduino platform which measures the current and voltage coming out of the
-installation, logs it to an SD card, and transmits daily SMS status updates over
-a GSM network. The circuit will be able to handle household voltages (~240V),
-currents up to 100A, and will cost around $200.
+DataGoo is an open-source device designed to measure power generation or
+consumption from small-scale electrical installations--cheaply. We designed
+it to be initially deployed in `microhydro plants <http://www.alterna-la.org/en/projects/microhydro>`_ run by `Alterna <http://www.alterna-la.org/en>`_ in Guatemala.
 
+DataGoo builds heavily on a similar, open-source device called the
+`OpenEnergyMonitor <http://www.openenergymonitor.org>`_ (emon). The emon system
+involves a transmitting device, a receiving device, and
+display software and is targeted for in-home deployment. Our device is
+designed for deployment in the field, so it uses a simpler output
+interface: text messages over GSM and logging to an SD card.
+
+.. image:: images/case_cad_transparent.png
+   :width: 100 %
 
 Indices and tables
 ==================

@@ -4,7 +4,7 @@ Written by Ravi Sankar, Simon Ye, and Nathan Hall-Snyder
 3/21/12
 
 Description: This code is primarily designed for an open source energy-monitoring board, which
-you can find details for at http://readthedocs.org/docs/datagoo/en/latest/index.html. However, it
+you can find details for at http://datagoo.readthedocs.org. However, it
 can also run on a Cellular Shield from SparkFun Electronics, an SD Card Shield from Adafruit, and
 an Arduino board. Details on those parts are also available at the readthedocs link.
 
@@ -74,16 +74,15 @@ void loop();
 void setup()
 {
   display_init();  // Initialize LED Display
-  MsTimer2::set(10, display_switch_digit); // 500ms period
+  MsTimer2::set(10, display_switch_digit); // 10ms period on displaying digits
   MsTimer2::start();
-  //display_write(97);
   
   //Initialize serial ports for communication.
   Serial.begin(9600);
   cell.begin(9600);
 
   //Wait until network registration before entering main loop
-  //delay(25000);
+  delay(25000);
 
   //Initialize SD card
   pinMode(sdPin, OUTPUT);
@@ -104,20 +103,18 @@ void setup()
     Serial.println("Please make a file called CELL.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
   }
   File calibrationFile = SD.open("calibration.txt");
-  String calibrationString;
+  String calibrationString = "";
   if (calibrationFile) {
     while (calibrationFile.available()) {
       calibrationString += cellFile.read();
     }
     calibrationString.trim(); //get rid of whitespace
     parseCalibrationString(calibrationString);
-  } else {
-    Serial.println("Please make a file called CALIBRATION.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
   }
 
-  //cell.println("AT+SBAND=?"); //TODO
+  cell.println("AT+SBAND=7"); //for Guatemala, we think SBAND=3 (GSM850) but double check the carrier frequency against the AT command set
   cell.println("AT+CMGF=1"); //Set system on text mode
-  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial
+  //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial if you want to be able to use texts as input to DataGoo
 
   // Voltage/Current calibration
   emon1.voltage(voltPin, calibrationConstants[0], calibrationConstants[1]);  // Voltage: input pin, calibration, phase_shift
