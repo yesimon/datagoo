@@ -34,10 +34,14 @@ There are several known errors in the layout:
 3D Layout
 =========
 
+The 3D render of the electrical layout:
+
 .. image:: images/electrical_3d_layout.png
 
 Schematic
 =========
+
+Overview of the electrical schematic:
 
 .. image:: images/electrical_schematic.png
    :width: 100 %

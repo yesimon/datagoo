@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# DataGoo documentation build configuration file, created by
+# Datagoo documentation build configuration file, created by
 # sphinx-quickstart on Sun Mar  4 19:27:08 2012.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'DataGoo'
+project = u'Datagoo'
 copyright = u'2012, Nathan Hall-Snyder, Ravi Sankar, Simon Ye'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -50,7 +50,7 @@ copyright = u'2012, Nathan Hall-Snyder, Ravi Sankar, Simon Ye'
 # The short X.Y version.
 version = '0.1'
 # The full version, including alpha/beta/rc tags.
-release = '0.1.1'
+release = '0.2'
 
 highlight_language = 'c'
 
@@ -166,7 +166,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'DataGoodoc'
+htmlhelp_basename = 'Datagoodoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -185,7 +185,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'DataGoo.tex', u'DataGoo Documentation',
+  ('index', 'Datagoo.tex', u'Datagoo Documentation',
    u'Nathan Hall-Snyder, Ravi Sankar, Simon Ye', 'manual'),
 ]
 
@@ -215,7 +215,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'datagoo', u'DataGoo Documentation',
+    ('index', 'datagoo', u'Datagoo Documentation',
      [u'Nathan Hall-Snyder, Ravi Sankar, Simon Ye'], 1)
 ]
 
@@ -229,8 +229,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'DataGoo', u'DataGoo Documentation',
-   u'Nathan Hall-Snyder, Ravi Sankar, Simon Ye', 'DataGoo', 'One line description of project.',
+  ('index', 'Datagoo', u'Datagoo Documentation',
+   u'Nathan Hall-Snyder, Ravi Sankar, Simon Ye', 'Datagoo', 'One line description of project.',
    'Miscellaneous'),
 ]
 
