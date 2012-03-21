@@ -73,15 +73,19 @@ Installation
    .. image:: images/current_sensor.jpg
       :height: 400 px
 
-.. warning::
+   .. warning::
 
       Use extreme caution when working with high voltages. Stripping
       and connecting a live (plugged in) wire may cause electrocution
       to the user.
 
-#. Strip two wires for the AC voltage signal. Make sure it is not plugged in!
+#. Strip two wires for the AC voltage signal. Make sure it is not
+   plugged in!
 
-#. Place one wire around the upper screw and screw down the plastic knob. Place the other wire on the lower screw and screw down the plastic knob. Give both wires a quick tug to make sure they are attached properly.
+#. Place one wire around the upper screw and screw down the plastic
+   knob. Place the other wire on the lower screw and screw down the
+   plastic knob. Give both wires a quick tug to make sure they are
+   attached properly.
 
    .. image:: images/attaching_wire.jpg
       :height: 300px
