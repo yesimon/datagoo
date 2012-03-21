@@ -9,10 +9,10 @@ Downloading the Firmware
 
 DataGoo's firmware is open-source and can be downloaded from GitHub:
 https://github.com/yesimon/datagoo. Feel free to send a pull request
-if you to contribute changes either to the source code or the
+if you want to contribute changes either to the source code or the
 documentation.
 
-For write access to the repository, please contact Simon Ye at
+For write access to the repository, please contact Simon at
 sye737+github@gmail.com.
 
 Building with Arduino IDE
