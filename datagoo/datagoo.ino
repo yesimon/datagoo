@@ -35,7 +35,6 @@ http://creativecommons.org/licenses/by/3.0/
 #include <string.h>         //Used for string manipulations
 #include <SD.h>             //SD card interface
 #include <SoftwareSerial.h> //Include the SoftwareSerial library to send serial commands to the cellular module.
-//#include <JeeLib.h>
 //#include <avr/wdt.h>
 #include "EmonLib.h"
 #include "MsTimer2.h"
@@ -45,17 +44,32 @@ http://creativecommons.org/licenses/by/3.0/
 #define currentPin 0
 #define voltPin 1
 
-String mobileNumber; //phone number to text status updates to
+#define SERIAL_ON 0 //set this to 1 if you want serial printing on (for debug)
+#define NUM_CAL_CONSTS 4 //the number of values in the calibration file
+#define MAX_PHONE_NUMS 5
 
-String inputString = ""; //used to read input from the cell phone module
-
-int numTextsSent = 0;
+#define TEXT_INTERVAL 60000 //ms: text every minute (for demo; deploy should probably be daily)
+#define LOG_INTERVAL  10000 //ms: log every 10s
+#define MILLIS_PER_DAY 86400000
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
-float calibrationConstants[3] = {238.5, 1.7, 75.71};
+String mobileNumber = ""; //phone number to text status updates to
+String inputString  = ""; //used to read input from the cell phone module
+String timeString   = ""; //time string pulled from GSM module
+
+int numTextsSent = 0;
+
+float sumPower = 0.0;
+int numPowerSamples = 0;
+
+float calibrationConstants[NUM_CAL_CONSTS] = {238.5, 1.7, 75.71, 7}; //default calibration (volt, phase shift, current, gsm sband)
 File logFile; //the file on the SD card that we are writing to
-long lastLoggedTime = 0; //and the time that file was last written to
+boolean sdAvailable = true;
+
+long lastLoggedTime = 0; //in millis
+long lastTextedTime = 0; //in millis
+float lastVoltReading = 0; //to check for voltage drop
 
 EnergyMonitor emon1; //used to do the actual energy calculations
 
@@ -64,7 +78,7 @@ EnergyMonitor emon1; //used to do the actual energy calculations
 void parseCalibrationString(String calibrationString);
 void startSMS(String mobileNumber);
 void endSMS();
-void SendText(String msg);
+void sendText(String msg);
 void cellReadLine();
 void writeLogHeader(); 
 void writeLogEntry(long time);
@@ -81,83 +95,113 @@ void setup()
   Serial.begin(9600);
   cell.begin(9600);
 
-  //Wait until network registration before entering main loop
+  //Wait until network registration is complete
   delay(25000);
 
   //Initialize SD card
   pinMode(sdPin, OUTPUT);
   if (!SD.begin(sdPin)) {
-    Serial.println("initialization failed!");
-    return;
+    sdAvailable = false;
+    if (SERIAL_ON) Serial.println("initialization failed!");
   }
-  Serial.println("initialization done.");
-
-  //read the cell number to text off the SD card
-  File cellFile = SD.open("cell.txt");
-  if (cellFile) {
-    while (cellFile.available()) {
-      mobileNumber += cellFile.read();
+  
+  if (sdAvailable) {
+    if (SERIAL_ON) Serial.println("initialization done.");
+  
+    //read the cell number to text off the SD card
+    File cellFile = SD.open("cell.txt");
+    if (cellFile) {
+      while (cellFile.available()) {
+        char c = (char) cellFile.read();
+        if (c == '#') break;
+        mobileNumber += c;
+      }
+      cellFile.close();
+      mobileNumber.trim(); //get rid of whitespace
+    } else {
+      if (SERIAL_ON) Serial.println("Please make a file called CELL.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
     }
-    mobileNumber.trim(); //get rid of whitespace
-  } else {
-    Serial.println("Please make a file called CELL.TXT on the SD card containing the phone number you would like the power logger to text with daily stats");
-  }
-  File calibrationFile = SD.open("calibration.txt");
-  String calibrationString = "";
-  if (calibrationFile) {
-    while (calibrationFile.available()) {
-      calibrationString += cellFile.read();
+    
+    //create the log file if necessary, with a header
+    if (!SD.exists("log.csv")) {
+      logFile = SD.open("log.csv", FILE_WRITE);
+      if (logFile) writeLogHeader();
+      logFile.close();
     }
-    calibrationString.trim(); //get rid of whitespace
-    parseCalibrationString(calibrationString);
+    
+    //setup power calibration numbers
+    File calibrationFile = SD.open("cal.txt");
+    String calibrationInput = "";
+    if (calibrationFile) {
+      while (calibrationFile.available()) {
+        char c = (char) calibrationFile.read();
+        if (c == '#') break;
+        calibrationInput += c;
+      }
+      calibrationFile.close();
+      calibrationInput.trim(); //get rid of whitespace
+      parseCalibrationString(calibrationInput);
+    }
   }
 
-  cell.println("AT+SBAND=7"); //for Guatemala, we think SBAND=3 (GSM850) but double check the carrier frequency against the AT command set
-  cell.println("AT+CMGF=1"); //Set system on text mode
+  int sband = (int) calibrationConstants[3]; //default: 7
+  cell.println("AT+SBAND=" + String(sband)); //for Guatemala, we think SBAND=3 (GSM850) but double check the carrier frequency against the AT command set
+  cell.println("AT+CMGF=1"); //Set GSM module on text (as opposed to voice) mode
   //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial if you want to be able to use texts as input to DataGoo
 
+  sendText("Hi, I'm DataGoo. Your number has been registered with me to receive updates on generator statistics.");
+
   // Voltage/Current calibration
-  emon1.voltage(voltPin, calibrationConstants[0], calibrationConstants[1]);  // Voltage: input pin, calibration, phase_shift
-  emon1.current(currentPin, calibrationConstants[2]);       // Current: input pin, calibration
+  emon1.voltage(voltPin, calibrationConstants[0], calibrationConstants[1]);  // Voltage: input pin, volt_calibration, phase_shift
+  emon1.current(currentPin, calibrationConstants[2]);       // Current: input pin, current_calibration
+  
+  display_write(0); //override the "88" that shows up on the display at startup
+  emon1.calcVI(20,2000); //the very first reading after reset is always junk, so just take one reading and toss the result
 }
 
 void loop() {
-  emon1.calcVI(20,2000);         // Calculate all. No.of wavelengths, time-out
-  //emon1.serialprint();           // Print out all variables
-  display_write((int) emon1.apparentPower / 1000);
+  emon1.calcVI(100,20000); // measure 100 wavelengths, waiting for at 20secs (20*1000ms)
+  display_write((int) emon1.apparentPower / 1000); //convert W to kW and display
 
   long now = millis();
-  long timeDiff = now - lastLoggedTime;
-  if (timeDiff > 10000) { //24 hrs * 60 mins * 60 secs * 1000 ms = 86,400,000 millisecs/day
-    //Open or create log file on SD card
-    logFile = SD.open("log.csv", FILE_WRITE);
+  sumPower += emon1.apparentPower;
+  numPowerSamples++;
+  
+  //check for and alert on voltage drops
+  if ((emon1.Vrms < lastVoltReading / 2) && (lastVoltReading - emon1.Vrms > 10)) {
+    String curVoltage = String((long)emon1.Vrms);
+    sendText("There appears to be an error with the generator. Its voltage has dropped to " + curVoltage);
+  }
+  lastVoltReading = emon1.Vrms;
+
+  //send a text on power readings
+  if (now - lastTextedTime > TEXT_INTERVAL) {
+    if (numTextsSent < 5) { //for demo purposes
+      float powerAvg = sumPower / numPowerSamples;
+      int truncatedAvg = (long) powerAvg;
+      sendText("Power generated (watts): " + String(truncatedAvg));
+      numTextsSent++;
+      sumPower = 0.0;
+      numPowerSamples = 0;
+      lastTextedTime = now;
+    }
+  }
+  //log power readings to the SD card
+  if (now - lastLoggedTime > LOG_INTERVAL) { //24 hrs * 60 mins * 60 secs * 1000 ms = 86,400,000 millisecs/day
+    logFile = SD.open("log.csv", FILE_WRITE); //Open the log file on SD card
     if (logFile) {
       writeLogEntry(now);
       logFile.close();
       lastLoggedTime = now;
-    } else {
-      Serial.println("error openening log.csv");
     }
   }
 
-  //wrap all calls to cellReadLine() in a cell.available() check
-  //to make sure we have something to read before blocking
-
-  //repeatedly read any input from the cellphone
+  //sample code to read texts to the device as input
   /*if (cell.available()) {
     cellReadLine();
     if (inputString.startsWith("datagootext")) {
-      changeTextNumber(inputString);
+      //dosomething
     }
-    inputString = "";
-  }*/
-
-  //send some test texts
-  /*if (numTextsSent < 2) {
-    cell.println("AT+CCLK?"); //clocktime
-    cellReadLine();
-    SendText(inputString);
-    numTextsSent++;
     inputString = "";
   }*/
 } 
@@ -166,23 +210,29 @@ void loop() {
  * Helper Functions
  * ------------------------------------------------------------------ */
 
+/* Converts the text from CAL.TXT into an array of 4 floats
+ * (volt_calibration, phase_shift, current_calibration, and SBAND).
+ * This last one is actually an int but is grouped her for convenience.
+ */
 void parseCalibrationString(String calibrationString) {
+  calibrationString += '\n';
   int calStringLen = calibrationString.length();
   int i = 0;
   int j = 0;
-  String calibrationConstantTemp;
+  String calibrationConstantTemp = "";
 
   for (i=0; i < calStringLen; i++) {
     char calArray[15];
-    char c = calibrationString[i];
-    if (c == '\n') {
+    char c = calibrationString[i]; //read a character at a time from the input string
+    if (c == '\n') { //separate inputs based on newlines
       calibrationConstantTemp.toCharArray(calArray, 14);
-      calibrationConstants[j] = atof(calArray);
+      calibrationConstants[j] = atof(calArray); //and convert the strings to floats
       calibrationConstantTemp = "";
       j++;
+      if (j >= NUM_CAL_CONSTS) return; //don't read more lines than expected
     }
-    else if (c == ' ') {
-      continue; 
+    else if (c == ' ') { //ignore this whitespace
+      continue;
     }
     else {
       calibrationConstantTemp += c;
@@ -190,6 +240,38 @@ void parseCalibrationString(String calibrationString) {
   } 
 }
 
+/* Converts the text from CELL.TXT into an array of up to 5 phone numbers
+ * to send text updates to.
+ */
+//void parseMobileNumbers(String cellString) {
+//  cellString += '\n';
+//  int cellStringLen = cellString.length();
+//  int i = 0;
+//  int j = 0;
+//  String temp = "";
+//
+//  //initialize the array
+//  for (int k=0; k < MAX_PHONE_NUMS; k++) {
+//    mobileNumbers[k] = "";
+//  }
+//
+//  //now populate it
+//  for (i=0; i < cellStringLen; i++) {
+//    char c = cellString[i]; //read a character at a time from the input string
+//    if (c == '\n') { //separate inputs based on newlines
+//      mobileNumbers[j] += temp;
+//      temp = "";
+//      j++;
+//      if (j >= MAX_PHONE_NUMS) return; //don't read more lines than expected
+//    }
+//    else if (c == ' ') { //ignore this whitespace
+//      continue;
+//    }
+//    else {
+//      temp += c;
+//    }
+//  }
+//}
 
 /* These functions basically print some magic strings to the cell module
  * to send texts. The information on what is expected is found here:
@@ -197,30 +279,30 @@ void parseCalibrationString(String calibrationString) {
  */
 void startSMS(String mobileNumber)
 {
-  Serial.println("starting SMS");
-  cell.println("AT+CMGF=1"); // set SMS mode to text
+  if (SERIAL_ON) Serial.println("starting SMS");
+  //cell.println("AT+CMGF=1"); // set SMS mode to text
   cell.print("AT+CMGS=");
   cell.write(34); // ASCII equivalent of "
   cell.print(mobileNumber);
   cell.write(34);  // ASCII equivalent of "
   cell.println();
-  //delay(500); // give the module some thinking time
+  delay(500); // give the module some thinking time
 }
 void endSMS()
 {
-  Serial.println("ending SMS");
+  if (SERIAL_ON) Serial.println("ending SMS");
   cell.write(26);  // ASCII equivalent of Ctrl-Z
-  //delay(15000); // the SMS module needs time to return to OK status
+  delay(5000); //give the module some thinking time
 }
 
 /*
- * Use this function to text (over GSM) the string 'msg' to the cell
- * phone number mobileNumber.
+ * Use this function to text (over GSM) the string 'msg' to all the cell
+ * phone numbers in mobileNumbers.
  *
  * startSMS and endSMS are helper functions for this function and shouldn't
  * be required by anything external (like the main loop)
  */
-void SendText(String msg) {
+void sendText(String msg) {
   startSMS(mobileNumber);
   cell.print(msg);
   endSMS();
@@ -238,7 +320,7 @@ void cellReadLine() {
 
   while (1) {
     if (cell.available()) { //if there is available input from the cell
-      char c = cell.read(); //read it
+      char c = (char) cell.read(); //read it
       lastReadT = millis(); //and update our timer
 
       if (c == -1 || c == '\n') { //ignore these characters
@@ -258,9 +340,10 @@ void cellReadLine() {
   }
 }
 
-
+/* Write CSV header to SD card if the logFile is open
+ */
 void writeLogHeader() {
-  logFile.print("Time (ms since startup)");
+  logFile.print("Time (relative to startup)");
   logFile.print(",");
   logFile.print("Voltage");
   logFile.print(",");
@@ -270,8 +353,13 @@ void writeLogHeader() {
   logFile.println();
 }
 
+/* Write CSV entry to SD card if the logFile is open
+ */
 void writeLogEntry(long time) {
-  logFile.print(time);
+  int dayNum = ((int) time/MILLIS_PER_DAY) + 1; //day 1 is the day of startup
+  int secsOfDay = (long) (time % MILLIS_PER_DAY) / 1000; //number of seconds into this day
+  String timeString = "day " + String(dayNum) + " and " + String(secsOfDay) + " seconds";
+  logFile.print(timeString);
   logFile.print(",");
   logFile.print(emon1.Vrms);
   logFile.print(",");
@@ -280,63 +368,4 @@ void writeLogEntry(long time) {
   logFile.print(emon1.apparentPower);
   logFile.println();
 }
-
-
-/* SM5100B Quick Reference for AT Command Set
-*Unless otherwise noted AT commands are ended by pressing the 'enter' key.
-
-1.) Make sure the proper GSM band has been selected for your country. For the US the band must be set to 7.
-To set the band, use this command: AT+SBAND=7
-
-2.) After powering on the Arduino with the shield installed, verify that the module reads and recognizes the SIM card.
-With a terimal window open and set to Arduino port and 9600 buad, power on the Arduino. The startup sequence should look something
-like this:
-
-Starting SM5100B Communication...
-
-+SIND: 1
-+SIND: 10,"SM",1,"FD",1,"LD",1,"MC",1,"RC",1,"ME",1
-
-Communication with the module starts after the first line is displayed. The second line of communication, +SIND: 10, tells us if the module
-can see a SIM card. If the SIM card is detected every other field is a 1; if the SIM card is not detected every other field is a 0.
-
-3.) Wait for a network connection before you start sending commands. After the +SIND: 10 response the module will automatically start trying
-to connect to a network. Wait until you receive the following repsones:
-
-+SIND: 11
-+SIND: 3
-+SIND: 4
-
-The +SIND response from the cellular module tells the the modules status. Here's a quick run-down of the response meanings:
-0 SIM card removed
-1 SIM card inserted
-2 Ring melody
-3 AT module is partially ready
-4 AT module is totally ready
-5 ID of released calls
-6 Released call whose ID=<idx>
-7 The network service is available for an emergency call
-8 The network is lost
-9 Audio ON
-10 Show the status of each phonebook after init phrase
-11 Registered to network
-
-After registering on the network you can begin interaction. Here are a few simple and useful commands to get started:
-
-To make a call:
-AT command - ATDxxxyyyzzzz
-Phone number with the format: (xxx)yyy-zzz
-
-If you make a phone call make sure to reference the devices datasheet to hook up a microphone and speaker to the shield.
-
-To send a txt message:
-AT command - AT+CMGF=1
-This command sets the text message mode to 'text.'
-AT command = AT+CMGS="xxxyyyzzzz"(carriage return)'Text to send'(CTRL+Z)
-This command is slightly confusing to describe. The phone number, in the format (xxx)yyy-zzzz goes inside double quotations. Press 'enter' after closing the quotations.
-Next enter the text to be send. End the AT command by sending CTRL+Z. This character can't be sent from Arduino's terminal. Use an alternate terminal program like Hyperterminal,
-Tera Term, Bray Terminal or X-CTU.
-
-The SM5100B module can do much more than this! Check out the datasheets on the product page to learn more about the module.
-*/
 
