@@ -36,7 +36,7 @@ display software and is targeted for in-home deployment. Our device is
 designed for deployment in the field, so it uses a simpler output
 interface: text messages over GSM and logging to an SD card.
 
-.. image:: images/case_cad_transparent.png
+.. image:: images/datagoo_html.jpg
    :width: 70 %
 
 Indices and tables
