@@ -23,9 +23,11 @@ Contents:
 
 Project Description
 ===================
-DataGoo is an open-source device designed to measure power generation or
-consumption from small-scale electrical installations--cheaply. We designed
-it to be initially deployed in `microhydro plants <http://www.alterna-la.org/en/projects/microhydro>`_ run by `Alterna <http://www.alterna-la.org/en>`_ in Guatemala.
+DataGoo is an open-source device designed to measure power generation
+or consumption from small-scale electrical installations--cheaply. We
+designed it to be initially deployed in `microhydro plants
+<http://www.alterna-la.org/en/projects/microhydro>`_ run by `Alterna
+<http://www.alterna-la.org/en>`_ in Guatemala.
 
 DataGoo builds heavily on a similar, open-source device called the
 `OpenEnergyMonitor <http://www.openenergymonitor.org>`_ (emon). The emon system
