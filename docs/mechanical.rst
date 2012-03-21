@@ -4,7 +4,7 @@
 Mechanical
 ==========
 
-.. image:: images/case_cad_transparent.png
+.. image:: images/case_exploded.png
 
 3D Printing the Datagoo Case
 ============================

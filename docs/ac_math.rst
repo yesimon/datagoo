@@ -1,8 +1,8 @@
 .. _ref-ac_math:
 
-==============
-AC Math Theory
-==============
+========================
+Power Measurement Theory
+========================
 
 This page covers the mathematics behind calculating real power,
 apparent power, power factor, RMS voltage and RMS current from
@@ -21,7 +21,7 @@ times current, :math:`i(t)`, as follows:
 
 .. math::
 
-   P = \frac{1}{T} \int_ \! u(n)\times i(n) \, \mathrm{d}t
+   P = \frac{1}{T} \int u(n)\times i(n) \, \mathrm{d}t
 
 **Equation 1. Real Power Definition.**
 
@@ -122,4 +122,3 @@ This page is based on Atmel's AVR465 Application Note pp. 12-15 which can be
 found `here <http://www.atmel.com/dyn/resources/prod_documents/doc2566.pdf>`_.
 
 Page referenced from `OpenEnergyMonitor <http://openenergymonitor.org/emon/buildingblocks/ac-power-the-maths>`_.
-
