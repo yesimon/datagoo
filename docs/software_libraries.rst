@@ -19,9 +19,8 @@ We forked their code base primarily because we needed to output our readings
 over GSM and to an SD logger, rather than over a custom (low-power) RF system
 which OpenEMon uses to transmit their data.
 
-`Open Energy Monitor website <http://openenergymonitor.org/emon/>`_
-
-`GitHub (up-to-date code) for the library <https://github.com/openenergymonitor/EmonLib/>`_
+| `Open Energy Monitor website <http://openenergymonitor.org/emon/>`_
+| `GitHub (up-to-date code) for the library <https://github.com/openenergymonitor/EmonLib/>`_
 
 Standard Arduino Libraries
 ==========================
