@@ -4,14 +4,16 @@
 Team
 ====
 
-Nathan
+Nathan - nhallsny@stanford.edu
 
 .. image:: images/nathan.jpg
+   :height: 400 px
 
-Ravi
+Ravi - sankarr@stanford.edu
 
 .. image:: images/ravi.jpg
+   :height: 400 px
 
-Simon
+Simon - sye@stanford.edu
 
 .. image:: images/simon.jpg
