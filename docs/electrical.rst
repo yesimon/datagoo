@@ -16,15 +16,17 @@ Electrical
 Schematic
 =========
 
-   ..note:: See below for known bugs in the design
+.. note:: See below for known bugs in the design
 
-Overview of the electrical schematic:
+:download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
+
+Electrical Schematics (generated in Altium):
 
 .. image:: images/electrical_schematic.png
    :width: 100 %
    :target: _downloads/electrical_schematic.pdf
 
-:download:`Electrical Schematic <images/electrical_schematic.pdf>`.
+
 
 Design Errors
 =============
