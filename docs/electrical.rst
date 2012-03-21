@@ -16,6 +16,7 @@ Electrical
 
 Description
 ===========
+
 For a description of how each sub-system works, consult the Systems Design
 
 Schematic
@@ -25,7 +26,6 @@ Schematic
 
    See below for known bugs before using these designs.
 
-..
 :download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
 
 Electrical Schematics (generated in Altium):
