@@ -23,6 +23,7 @@ Contents:
 
 Project Description
 ===================
+
 DataGoo is an open-source device designed to measure power generation
 or consumption from small-scale electrical installations--cheaply. We
 designed it to be initially deployed in `microhydro plants
@@ -42,5 +43,5 @@ interface: text messages over GSM and logging to an SD card.
 Indices and tables
 ==================
 
-.. * :ref:`genindex`
-.. * :ref:`search`
+* :ref:`genindex`
+* :ref:`search`
