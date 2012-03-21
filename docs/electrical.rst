@@ -11,6 +11,7 @@ Electrical
    designators, check out the Bill of Materials
 
    .. image:: images/electrical_layout.png
+      :width: 400px
 
 Schematic
 =========
@@ -24,7 +25,7 @@ Schematic
    Electrical Schematics (generated in Altium):
 
 .. image:: images/electrical_schematic.png
-   :width: 100 %
+   :width: 70 %
    :target: _downloads/electrical_schematic.pdf
 
 Design Errors
