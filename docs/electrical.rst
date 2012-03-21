@@ -20,9 +20,9 @@ Schematic
 
    See below for known bugs in the design
 
-:download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
+   :download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
 
-Electrical Schematics (generated in Altium):
+   Electrical Schematics (generated in Altium):
 
 .. image:: images/electrical_schematic.png
    :width: 100 %
@@ -37,7 +37,7 @@ Design Errors
 
 Schematic Errors
 ================
-There are no known errors in the below schematic.
+   There are no known errors in the below schematic.
 
 Layout Errors
 =============
@@ -57,7 +57,7 @@ There are several known errors in the layout:
 3D Layout
 =========
 
-The 3D render of the electrical layout:
+   The 3D render of the electrical layout:
 
 .. image:: images/electrical_3d_layout.png
 
