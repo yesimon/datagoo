@@ -4,7 +4,6 @@
 Electrical
 ==========
 
-
 .. warning::
 
    Before trying to have the PCB manufactured, please contact
@@ -18,7 +17,7 @@ Schematic
 
 .. note:: 
 
-   See below for known bugs in the design
+   See below for known bugs before using these designs.
 
    :download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
 
@@ -27,8 +26,6 @@ Schematic
 .. image:: images/electrical_schematic.png
    :width: 100 %
    :target: _downloads/electrical_schematic.pdf
-
-
 
 Design Errors
 =============
