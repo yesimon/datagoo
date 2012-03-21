@@ -1,8 +1,8 @@
 .. _ref-quickstart:
 
-==========
-Quickstart
-==========
+================
+Quickstart Guide
+================
 
 This guide is for installing a datagoo with hardware and firmware
 preinstalled. It details the steps for configuring and attaching the
@@ -66,21 +66,30 @@ Installation
 #. Connect current sensor. The current sensor should be clamped around
    only one wire.
 
-   .. image:: images/attached_ct.jpg
+   .. image:: images/current_sensor.jpg
       :height: 400 px
 
-#. Strip two wires for the AC voltage signal. Make sure it is not plugged in! 
-
-   .. warning::
+.. warning::
 
       Use extreme caution when working with high voltages. Stripping and connecting a live (plugged in) wire may cause
       electrocution to the user.
 
+#. Strip two wires for the AC voltage signal. Make sure it is not plugged in! 
+
 #. Place one wire around the upper screw and screw down the plastic knob. Place the other wire on the lower screw and screw down the plastic knob. Give both wires a quick tug to make sure they are attached properly. 
+   
+   ..image:: images/attaching_wire.jpg
+   :height: 300px
+
+   ..image:: images/wire_detail.jpg
+   :height: 300px
 
 #. Replace the high voltage cover.
+   
+   ..image:: images/finished_voltage.jpg
+   :height: 400px
 
-#. Plug the stripped wire to the power source.
+#. Plug the other end of the voltage wires to the power source.
 
 #. The red display shows the number of kW currently being generated.
 
