@@ -49,8 +49,9 @@ http://creativecommons.org/licenses/by/3.0/
 #define MAX_PHONE_NUMS 5
 
 #define TEXT_INTERVAL 60000 //ms: text every minute (for demo; deploy should probably be daily)
-#define LOG_INTERVAL  10000 //ms: log every 10s
-#define MILLIS_PER_DAY 86400000
+#define LOG_INTERVAL  5000 //ms: log every 10s
+#define MILLIS_PER_DAY 86400000L
+#define MILLIS_PER_HOUR 3600000L
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
@@ -67,9 +68,10 @@ float calibrationConstants[NUM_CAL_CONSTS] = {238.5, 1.7, 75.71, 7}; //default c
 File logFile; //the file on the SD card that we are writing to
 boolean sdAvailable = true;
 
-long lastLoggedTime = 0; //in millis
-long lastTextedTime = 0; //in millis
+unsigned long lastLoggedTime = 0; //in millis
+unsigned long lastTextedTime = 0; //in millis
 float lastVoltReading = 0; //to check for voltage drop
+int lastPowerDisplayed = 0;
 
 EnergyMonitor emon1; //used to do the actual energy calculations
 
@@ -96,7 +98,10 @@ void setup()
   cell.begin(9600);
 
   //Wait until network registration is complete
-  delay(25000);
+  for (int i=25; i > 0; i--) {
+    display_write(i);
+    delay(1000);
+  }
 
   //Initialize SD card
   pinMode(sdPin, OUTPUT);
@@ -160,10 +165,11 @@ void setup()
 }
 
 void loop() {
-  emon1.calcVI(100,20000); // measure 100 wavelengths, waiting for at 20secs (20*1000ms)
-  display_write((int) emon1.apparentPower / 1000); //convert W to kW and display
+  emon1.calcVI(50,10000); // measure 50 wavelengths, waiting for at most 10secs (10*1000ms)
+  lastPowerDisplayed = (int) emon1.apparentPower / 1000;
+  display_write(lastPowerDisplayed); //convert W to kW and display
 
-  long now = millis();
+  unsigned long now = millis();
   sumPower += emon1.apparentPower;
   numPowerSamples++;
   
@@ -177,9 +183,9 @@ void loop() {
   //send a text on power readings
   if (now - lastTextedTime > TEXT_INTERVAL) {
     if (numTextsSent < 5) { //for demo purposes
-      float powerAvg = sumPower / numPowerSamples;
+      float powerAvg = sumPower / numPowerSamples * (now - lastTextedTime) / MILLIS_PER_HOUR;
       int truncatedAvg = (long) powerAvg;
-      sendText("Power generated (watts): " + String(truncatedAvg));
+      sendText("Energy generated (watt hours): " + String(truncatedAvg));
       numTextsSent++;
       sumPower = 0.0;
       numPowerSamples = 0;
@@ -303,6 +309,11 @@ void endSMS()
  * be required by anything external (like the main loop)
  */
 void sendText(String msg) {
+  for (int i=5; i > 0; i--) {
+    display_write(i);
+    delay(200);
+  }
+  display_write(lastPowerDisplayed);
   startSMS(mobileNumber);
   cell.print(msg);
   endSMS();
