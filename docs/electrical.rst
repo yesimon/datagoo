@@ -10,8 +10,7 @@ Electrical
    nhallsny@stanford.edu for the correct settings. For components and
    designators, check out the Bill of Materials
 
-..Two Layer-Board 
-
+..
 .. image:: images/electrical_layout.png
    :width: 400px
 
