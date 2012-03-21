@@ -13,6 +13,19 @@ Electrical
 
 .. image:: images/electrical_layout.png
 
+Schematic
+=========
+
+   ..note:: See below for known bugs in the design
+
+Overview of the electrical schematic:
+
+.. image:: images/electrical_schematic.png
+   :width: 100 %
+   :target: _downloads/electrical_schematic.pdf
+
+:download:`Electrical Schematic <images/electrical_schematic.pdf>`.
+
 Design Errors
 =============
 1. If the device is completely discharged, and is recharged with a USB charger, the reset button needs to be pressed in order to reset the device.
@@ -44,13 +57,4 @@ The 3D render of the electrical layout:
 
 .. image:: images/electrical_3d_layout.png
 
-Schematic
-=========
 
-Overview of the electrical schematic:
-
-.. image:: images/electrical_schematic.png
-   :width: 100 %
-   :target: _downloads/electrical_schematic.pdf
-
-:download:`Electrical Schematic <images/electrical_schematic.pdf>`.
