@@ -73,7 +73,7 @@ Installation
 
    .. warning::
 
-      Stripping and connecting a live (plugged in) wire will cause
+      Use extreme caution when working with high voltages. Stripping and connecting a live (plugged in) wire may cause
       electrocution to the user.
 
 #. Place one wire around the upper screw and screw down the plastic knob. Place the other wire on the lower screw and screw down the plastic knob. Give both wires a quick tug to make sure they are attached properly. 
