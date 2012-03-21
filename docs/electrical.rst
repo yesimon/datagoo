@@ -13,6 +13,11 @@ Electrical
 
 .. image:: images/electrical_layout.png
 
+Design Errors
+=============
+1. If the device is completely discharged, and is recharged with a USB charger, the reset button needs to be pressed in order to reset the device.
+2. The voltage measurement is not isolated. While we made this decision for cost reasons, for safety and ease of hacking the design should be updated with an isolation transformer.
+
 Schematic Errors
 ================
 There are no known errors in the below schematic.
@@ -30,6 +35,7 @@ There are several known errors in the layout:
 6. The footprint for SW1 is incorrect, but hackable
 7. The large 100uF capacitor doesn't have a polarity marking
 8. The same net is connected to two of the seven segment display pins
+9. The pullup for the reset net is not connected to 3.3V
 
 3D Layout
 =========
