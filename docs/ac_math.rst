@@ -1,8 +1,8 @@
 .. _ref-ac_math:
 
-==============
-AC Math Theory
-==============
+========================
+Power Measurement Theory
+========================
 
 This page covers the mathematics behind calculating real power,
 apparent power, power factor, RMS voltage and RMS current from
