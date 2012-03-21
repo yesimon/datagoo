@@ -10,7 +10,8 @@ Electrical
    nhallsny@stanford.edu for the correct settings. For components and
    designators, check out the Bill of Materials
 
-Two Layer-Board Layout
+..Two Layer-Board 
+
 .. image:: images/electrical_layout.png
    :width: 400px
 
@@ -21,6 +22,7 @@ Schematic
 
    See below for known bugs before using these designs.
 
+..
 :download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
 
 Electrical Schematics (generated in Altium):
