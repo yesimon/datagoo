@@ -16,7 +16,9 @@ Electrical
 Schematic
 =========
 
-.. note:: See below for known bugs in the design
+.. note:: 
+
+   See below for known bugs in the design
 
 :download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
 
