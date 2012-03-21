@@ -10,8 +10,8 @@ Electrical
    nhallsny@stanford.edu for the correct settings. For components and
    designators, check out the Bill of Materials
 
-   .. image:: images/electrical_layout.png
-      :width: 400px
+.. image:: images/electrical_layout.png
+   :width: 400px
 
 Schematic
 =========
@@ -22,7 +22,7 @@ Schematic
 
    :download:`Download Electrical Schematic <images/electrical_schematic.pdf>`.
 
-   Electrical Schematics (generated in Altium):
+Electrical Schematics (generated in Altium):
 
 .. image:: images/electrical_schematic.png
    :width: 70 %
