@@ -21,7 +21,7 @@ For a description of how each sub-system works, consult the Systems Design
 Schematic
 =========
 
-.. note:: 
+.. note::
 
    See below for known bugs before using these designs.
 
@@ -36,12 +36,18 @@ Electrical Schematics (generated in Altium):
 
 Design Errors
 =============
-1. If the device is completely discharged, and is recharged with a USB charger, the reset button needs to be pressed in order to reset the device.
-2. The voltage measurement is not isolated. While we made this decision for cost reasons, for safety and ease of hacking the design should be updated with an isolation transformer.
+
+1. If the device is completely discharged, and is recharged with a USB
+   charger, the reset button needs to be pressed in order to reset the
+   device.
+2. The voltage measurement is not isolated. While we made this
+   decision for cost reasons, for safety and ease of hacking the
+   design should be updated with an isolation transformer.
 
 Schematic Errors
 ================
-   There are no known errors in the below schematic.
+
+There are no known errors in the below schematic.
 
 Layout Errors
 =============
@@ -61,8 +67,6 @@ There are several known errors in the layout:
 3D Layout
 =========
 
-   The 3D render of the electrical layout:
+The 3D render of the electrical layout:
 
 .. image:: images/electrical_3d_layout.png
-
-

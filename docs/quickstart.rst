@@ -25,24 +25,28 @@ Installation
 
 .. warning::
 
-      Make sure that all wires are disconnected from the device before removing the cover.
+   Make sure that all wires are disconnected from the device before removing the cover.
 
-#. Remove the high voltage cover (may require a small tool) and the two plastic knobs.
+#. Remove the high voltage cover (may require a small tool) and the
+   two plastic knobs.
 
-      .. image:: images/case_exploded_sim.png
-         :height: 350 px
+   .. image:: images/case_exploded_sim.png
+      :height: 350 px
 
-#. Unscrew the four screws on the bottom of the device and remove the top case.
+#. Unscrew the four screws on the bottom of the device and remove the
+   top case.
 
-#. Place an activated SIM card in the SIM card holder. (Make sure that the
-   SIM card is capable of sending text messages via a normal mobile phone before trying with the Datagoo)
+#. Place an activated SIM card in the SIM card holder. (Make sure that
+   the SIM card is capable of sending text messages via a normal
+   mobile phone before trying with the Datagoo)
 
 #. Flip the ON/OFF switch to ON. You should see a small green light turn on.
 
    .. image:: images/case_exploded_switch.png
       :height: 350 px
 
-#. Put the top back on the device and screw in the four screws. Do not put knobs or high voltage cover back on.
+#. Put the top back on the device and screw in the four screws. Do not
+   put knobs or high voltage cover back on.
 
 #. Format an SD card to FAT16. (This is by default for SD cards, but
    please double check).
@@ -71,23 +75,24 @@ Installation
 
 .. warning::
 
-      Use extreme caution when working with high voltages. Stripping and connecting a live (plugged in) wire may cause
-      electrocution to the user.
+      Use extreme caution when working with high voltages. Stripping
+      and connecting a live (plugged in) wire may cause electrocution
+      to the user.
 
-#. Strip two wires for the AC voltage signal. Make sure it is not plugged in! 
+#. Strip two wires for the AC voltage signal. Make sure it is not plugged in!
 
-#. Place one wire around the upper screw and screw down the plastic knob. Place the other wire on the lower screw and screw down the plastic knob. Give both wires a quick tug to make sure they are attached properly. 
-   
-   ..image:: images/attaching_wire.jpg
-   :height: 300px
+#. Place one wire around the upper screw and screw down the plastic knob. Place the other wire on the lower screw and screw down the plastic knob. Give both wires a quick tug to make sure they are attached properly.
 
-   ..image:: images/wire_detail.jpg
-   :height: 300px
+   .. image:: images/attaching_wire.jpg
+      :height: 300px
+
+   .. image:: images/wire_detail.jpg
+      :height: 300px
 
 #. Replace the high voltage cover.
-   
-   ..image:: images/finished_voltage.jpg
-   :height: 400px
+
+   .. image:: images/finished_voltage.jpg
+      :height: 400px
 
 #. Plug the other end of the voltage wires to the power source.
 
