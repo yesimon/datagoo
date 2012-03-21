@@ -4,7 +4,6 @@
 Quickstart
 ==========
 
-
 This guide is for installing a datagoo with hardware and firmware
 preinstalled. It details the steps for configuring and attaching the
 datagoo to a power supply, so that it is ready to send text
@@ -29,8 +28,9 @@ Installation
       Make sure that all wires are disconnected from the device before removing the cover.
 
 #. Remove the high voltage cover (may require a small tool) and the two plastic knobs.
-.. image:: images/case_exploded_sim.png
-      :height: 350 px
+
+      .. image:: images/case_exploded_sim.png
+         :height: 350 px
 
 #. Unscrew the four screws on the bottom of the device and remove the top case.
 
