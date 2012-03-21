@@ -19,7 +19,7 @@ Component Locations
 
 Voltage Measurement System
 ==========================
-The input voltage is rectified with a bridge rectifier. Then, a voltage divider reduces the voltage by a factor of 110. Then, the now 3.3V signal is run through an op-amp buffer for measurement accuracy. Finally, the signal is fed into the ATMEGA328P's Analog Input 1 
+The input voltage is rectified with a bridge rectifier. Then, a voltage divider reduces the voltage by a factor of 110. Then, the now 3.3V signal is run through an op-amp buffer for measurement accuracy. Finally, the signal is fed into the ATMEGA328P's Analog Input 1.
 
 Current Measurement System
 ==========================
