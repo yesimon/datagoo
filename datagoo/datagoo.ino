@@ -35,9 +35,9 @@ http://creativecommons.org/licenses/by/3.0/
 #include <string.h>         //Used for string manipulations
 #include <SD.h>             //SD card interface
 #include <SoftwareSerial.h> //Include the SoftwareSerial library to send serial commands to the cellular module.
-//#include <avr/wdt.h>
-#include "EmonLib.h"
-#include "MsTimer2.h"
+//#include <avr/wdt.h>      //this library would be used to enable auto-reset on device crashes
+#include "EmonLib.h"        //energy calculations
+#include "MsTimer2.h"       //required for the LED display
 #include "LedDisplay.h"
 
 #define sdPin 10
@@ -46,12 +46,12 @@ http://creativecommons.org/licenses/by/3.0/
 
 #define SERIAL_ON 0 //set this to 1 if you want serial printing on (for debug)
 #define NUM_CAL_CONSTS 4 //the number of values in the calibration file
-#define MAX_PHONE_NUMS 5
 
-#define TEXT_INTERVAL 60000 //ms: text every minute (for demo; deploy should probably be daily)
-#define LOG_INTERVAL  5000 //ms: log every 10s
+
 #define MILLIS_PER_DAY 86400000L
 #define MILLIS_PER_HOUR 3600000L
+#define TEXT_INTERVAL MILLIS_PER_DAY //ms: text every day
+#define LOG_INTERVAL 60000 //ms: log every minute
 
 SoftwareSerial cell(2,3);  //Create a 'fake' serial port. Pin 2 is the Rx pin, pin 3 is the Tx pin.
 
@@ -75,7 +75,7 @@ int lastPowerDisplayed = 0;
 
 EnergyMonitor emon1; //used to do the actual energy calculations
 
-//ISR(WDT_vect) { Sleepy::watchdogEvent(); }
+//ISR(WDT_vect) { Sleepy::watchdogEvent(); } //watchdogs can be used to auto-restart the device on crash 
 
 void parseCalibrationString(String calibrationString);
 void startSMS(String mobileNumber);
@@ -97,9 +97,9 @@ void setup()
   Serial.begin(9600);
   cell.begin(9600);
 
-  //Wait until network registration is complete
-  for (int i=25; i > 0; i--) {
-    display_write(i);
+  //Wait until network registration is complete (estimate 60s is sufficient)
+  for (int i=60; i > 0; i--) {
+    display_write(i); //count down every second on the display
     delay(1000);
   }
 
@@ -149,8 +149,9 @@ void setup()
     }
   }
 
+  //full list of SBANDs on page 127 of http://www.sparkfun.com/datasheets/Cellular%20Modules/CEL-09533-AT%20Command_V1%5B1%5D.0.0-1.pdf
   int sband = (int) calibrationConstants[3]; //default: 7
-  cell.println("AT+SBAND=" + String(sband)); //for Guatemala, we think SBAND=3 (GSM850) but double check the carrier frequency against the AT command set
+  cell.println("AT+SBAND=" + String(sband)); //for Guatemala, we think SBAND=7 should work (GSM850) but try SBAND=3 if it doesn't
   cell.println("AT+CMGF=1"); //Set GSM module on text (as opposed to voice) mode
   //cell.println("AT+CNMI=3,3,0,0"); //Set text messages to output to serial if you want to be able to use texts as input to DataGoo
 
@@ -161,7 +162,7 @@ void setup()
   emon1.current(currentPin, calibrationConstants[2]);       // Current: input pin, current_calibration
   
   display_write(0); //override the "88" that shows up on the display at startup
-  emon1.calcVI(20,2000); //the very first reading after reset is always junk, so just take one reading and toss the result
+  emon1.calcVI(50,10000); //the very first reading after reset is always junk, so just take one reading and toss the result
 }
 
 void loop() {
@@ -182,18 +183,16 @@ void loop() {
 
   //send a text on power readings
   if (now - lastTextedTime > TEXT_INTERVAL) {
-    if (numTextsSent < 5) { //for demo purposes
-      float powerAvg = sumPower / numPowerSamples * (now - lastTextedTime) / MILLIS_PER_HOUR;
-      int truncatedAvg = (long) powerAvg;
-      sendText("Energy generated (watt hours): " + String(truncatedAvg));
-      numTextsSent++;
-      sumPower = 0.0;
-      numPowerSamples = 0;
-      lastTextedTime = now;
-    }
+    float powerAvg = sumPower / numPowerSamples * (now - lastTextedTime) / MILLIS_PER_HOUR;
+    int truncatedAvg = (long) powerAvg;
+    sendText("Energy generated (watt hours): " + String(truncatedAvg));
+    numTextsSent++;
+    sumPower = 0.0;
+    numPowerSamples = 0;
+    lastTextedTime = now;
   }
   //log power readings to the SD card
-  if (now - lastLoggedTime > LOG_INTERVAL) { //24 hrs * 60 mins * 60 secs * 1000 ms = 86,400,000 millisecs/day
+  if (now - lastLoggedTime > LOG_INTERVAL) {
     logFile = SD.open("log.csv", FILE_WRITE); //Open the log file on SD card
     if (logFile) {
       writeLogEntry(now);
@@ -248,6 +247,9 @@ void parseCalibrationString(String calibrationString) {
 
 /* Converts the text from CELL.TXT into an array of up to 5 phone numbers
  * to send text updates to.
+ *
+ * Unfortunately, this code is buggy and we weren't able to figure out why.
+ * Hopefully it will serve as a useful outline for the idea.
  */
 //void parseMobileNumbers(String cellString) {
 //  cellString += '\n';
@@ -286,7 +288,6 @@ void parseCalibrationString(String calibrationString) {
 void startSMS(String mobileNumber)
 {
   if (SERIAL_ON) Serial.println("starting SMS");
-  //cell.println("AT+CMGF=1"); // set SMS mode to text
   cell.print("AT+CMGS=");
   cell.write(34); // ASCII equivalent of "
   cell.print(mobileNumber);
@@ -309,7 +310,7 @@ void endSMS()
  * be required by anything external (like the main loop)
  */
 void sendText(String msg) {
-  for (int i=5; i > 0; i--) {
+  for (int i=5; i > 0; i--) { //a very short countdown to indicate text sending
     display_write(i);
     delay(200);
   }
